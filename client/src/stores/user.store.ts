@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { User } from '../types/auth.types.js';
-import { UpdateProfilePayload } from '../types/user.types.js';
+import type { User } from '../types/auth.types.js';
+import type { UpdateProfilePayload } from '../types/user.types.js';
 import { userApi } from '../api/user.api.js';
 
 export const useUserStore = defineStore('user', () => {
@@ -41,12 +41,31 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
+  const uploadAvatar = async (file: File) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      // Simulate file upload API call
+      console.log(`[Store] Uploading avatar: ${file.name} (${file.size} bytes)`);
+      if (profile.value) {
+        // Mock update local profile with a temporary object URL for visual feedback
+        profile.value.avatarUrl = URL.createObjectURL(file);
+      }
+    } catch (err: any) {
+      error.value = 'Failed to upload avatar';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     profile,
     loading,
     error,
     fetchProfile,
     updateProfile,
+    uploadAvatar,
   };
 });
 export default useUserStore;

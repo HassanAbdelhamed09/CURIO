@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { Wishlist } from '../types/wishlist.types.js';
+import type { Wishlist } from '../types/wishlist.types.js';
 import { wishlistApi } from '../api/wishlist.api.js';
 
 export const useWishlistStore = defineStore('wishlist', () => {

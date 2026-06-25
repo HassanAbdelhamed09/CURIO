@@ -1,7 +1,7 @@
 import { http } from './http.js';
-import { User } from '../types/auth.types.js';
-import { UpdateProfilePayload } from '../types/user.types.js';
-import { ApiResponse } from '../types/api.types.js';
+import type { User } from '../types/auth.types.js';
+import type { UpdateProfilePayload } from '../types/user.types.js';
+import type { ApiResponse } from '../types/api.types.js';
 
 export const userApi = {
   async getMe(): Promise<ApiResponse<User>> {

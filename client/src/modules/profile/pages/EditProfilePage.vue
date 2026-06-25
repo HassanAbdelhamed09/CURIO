@@ -1,135 +1,118 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../../../stores/user.store.js';
-import BaseInput from '../../../components/ui/BaseInput.vue';
-import BaseButton from '../../../components/ui/BaseButton.vue';
-import BaseAlert from '../../../components/ui/BaseAlert.vue';
+import ProfileForm from '../components/ProfileForm.vue';
+import AvatarUploader from '../components/AvatarUploader.vue';
 
 const userStore = useUserStore();
 const router = useRouter();
 
-const fullName = ref('');
-const phone = ref('');
+const handleSuccess = () => {
+  router.push({ name: 'profile' });
+};
 
-onMounted(async () => {
-  if (!userStore.profile) {
-    try {
-      await userStore.fetchProfile();
-    } catch (err) {
-      console.error(err);
-    }
-  }
+const handleCancel = () => {
+  router.push({ name: 'profile' });
+};
 
-  if (userStore.profile) {
-    fullName.value = userStore.profile.fullName;
-    phone.value = userStore.profile.phone || '';
-  }
-});
-
-const handleSave = async () => {
+const handleAvatarUpload = async (file: File) => {
   try {
-    await userStore.updateProfile({
-      fullName: fullName.value,
-      phone: phone.value,
-    });
-    router.push({ name: 'profile' });
+    await userStore.uploadAvatar(file);
   } catch (err) {
-    // Handled in store
+    console.error('Failed uploading avatar image', err);
   }
 };
 </script>
 
 <template>
-  <div class="edit-profile-page">
-    <h1 class="page-title">Edit Profile</h1>
+  <div class="edit-profile-view">
+    <header class="page-header">
+      <h1 class="page-title">Edit Account Profile</h1>
+      <p class="page-subtitle">Customize your public presence and account details</p>
+    </header>
 
-    <div class="form-card">
-      <BaseAlert v-if="userStore.error" type="error" :message="userStore.error" />
-
-      <form @submit.prevent="handleSave" class="form">
-        <BaseInput
-          id="name"
-          v-model="fullName"
-          type="text"
-          label="Full Name"
-          required
-        />
-
-        <BaseInput
-          id="phone"
-          v-model="phone"
-          type="tel"
-          label="Phone Number"
-          placeholder="+1234567890"
-        />
-
-        <div class="actions">
-          <router-link to="/profile" class="btn-cancel">Cancel</router-link>
-          <BaseButton type="submit" :loading="userStore.loading" class="btn-save">
-            Save Changes
-          </BaseButton>
+    <div v-if="userStore.profile" class="edit-layout">
+      <!-- Left Column: Avatar Uploader -->
+      <section class="card-column" aria-label="Customize Avatar">
+        <div class="card-panel">
+          <h3 class="panel-heading">Profile Picture</h3>
+          <AvatarUploader
+            :avatarUrl="userStore.profile.avatarUrl"
+            :fullName="userStore.profile.fullName"
+            @upload="handleAvatarUpload"
+          />
         </div>
-      </form>
+      </section>
+
+      <!-- Right Column: Form Inputs -->
+      <section class="card-column" aria-label="Account Settings">
+        <div class="card-panel">
+          <h3 class="panel-heading">Personal Information</h3>
+          <ProfileForm
+            @success="handleSuccess"
+            @cancel="handleCancel"
+          />
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
-.edit-profile-page {
-  max-width: 600px;
+.edit-profile-view {
+  max-width: 900px;
   margin: 0 auto;
 }
 
+.page-header {
+  margin-bottom: 32px;
+  text-align: left;
+}
+
 .page-title {
-  font-size: 2rem;
+  font-family: var(--font-heading);
+  font-size: 2.25rem;
   font-weight: 800;
-  color: #f3f4f6;
-  margin-bottom: 2rem;
+  color: var(--color-text-h);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.75px;
 }
 
-.form-card {
-  background-color: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  padding: 2rem;
+.page-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-muted);
+  margin: 0;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.edit-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  align-items: start;
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.btn-cancel {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  color: #9ca3af;
-  text-decoration: none;
-  background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
+.card-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-soft);
   box-sizing: border-box;
+  text-align: left;
 }
 
-.btn-cancel:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #f3f4f6;
+.panel-heading {
+  margin: 0 0 20px 0;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-h);
 }
 
-.btn-save {
-  width: 100%;
+@media (max-width: 768px) {
+  .edit-layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

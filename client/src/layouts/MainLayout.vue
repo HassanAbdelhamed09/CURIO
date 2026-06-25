@@ -13,30 +13,46 @@ const handleLogout = async () => {
 
 <template>
   <div class="main-layout">
-    <header class="header">
+    <!-- Header Navigation -->
+    <header class="app-header">
       <div class="header-container">
-        <router-link to="/" class="logo">ShopPremium</router-link>
+        <router-link to="/" class="logo">
+          Shop<span class="logo-accent">Premium</span>
+        </router-link>
         
-        <nav class="nav">
-          <router-link to="/" class="nav-link">Home</router-link>
+        <nav class="navigation-bar" aria-label="Primary navigation">
+          <router-link to="/" class="nav-item">Home</router-link>
+          
           <template v-if="authStore.isAuthenticated">
-            <router-link to="/wishlist" class="nav-link">Wishlist</router-link>
-            <router-link to="/profile" class="nav-link">Profile</router-link>
-            <button @click="handleLogout" class="btn-logout">Logout</button>
+            <router-link to="/wishlist" class="nav-item">Wishlist</router-link>
+            <router-link to="/profile" class="nav-item">Profile</router-link>
+            <button @click="handleLogout" class="btn-logout" aria-label="Sign out of account">
+              Logout
+            </button>
           </template>
+          
           <template v-else>
-            <router-link to="/auth/login" class="nav-link btn-login">Login</router-link>
+            <router-link to="/auth/login" class="nav-item nav-item-cta">
+              Sign In
+            </router-link>
           </template>
         </nav>
       </div>
     </header>
 
-    <main class="content">
-      <router-view />
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div class="content-container">
+        <router-view />
+      </div>
     </main>
 
-    <footer class="footer">
-      <p>&copy; 2026 ShopPremium. All rights reserved.</p>
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-container">
+        <p class="footer-copy">&copy; 2026 ShopPremium. All rights reserved.</p>
+        <p class="footer-note">Designed for trust and premium shopping.</p>
+      </div>
     </footer>
   </div>
 </template>
@@ -46,18 +62,19 @@ const handleLogout = async () => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #0b0f19;
-  color: #f3f4f6;
-  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  box-sizing: border-box;
 }
 
-.header {
-  background-color: rgba(17, 24, 39, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.app-header {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .header-container {
@@ -66,75 +83,127 @@ const handleLogout = async () => {
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 16px 24px;
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(to right, #6366f1, #a855f7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-h);
   text-decoration: none;
+  letter-spacing: -0.5px;
 }
 
-.nav {
+.logo-accent {
+  color: var(--color-accent);
+}
+
+.navigation-bar {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 20px;
 }
 
-.nav-link {
-  color: #9ca3af;
+.nav-item {
+  color: var(--color-text);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
+  font-weight: 600;
+  font-size: 0.925rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
 }
 
-.nav-link:hover, .router-link-active {
-  color: #f3f4f6;
+.nav-item:hover, .router-link-active {
+  color: var(--color-primary);
+  background-color: rgba(15, 61, 94, 0.04);
 }
 
 .btn-logout {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f3f4f6;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.925rem;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .btn-logout:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--color-bg);
+  border-color: var(--color-text-h);
 }
 
-.btn-login {
-  background: linear-gradient(to right, #4f46e5, #7c3aed);
-  color: white;
-  padding: 0.5rem 1.25rem;
-  border-radius: 0.375rem;
-  transition: opacity 0.2s ease;
+.btn-logout:focus-visible {
+  outline: 2px solid var(--color-accent);
 }
 
-.btn-login:hover {
-  opacity: 0.9;
+.nav-item-cta {
+  background-color: var(--color-primary);
+  color: #ffffff !important;
+  padding: 8px 18px;
 }
 
-.content {
+.nav-item-cta:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.main-content {
   flex-grow: 1;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
+  box-sizing: border-box;
 }
 
-.footer {
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.app-footer {
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: 24px 24px;
   text-align: center;
-  padding: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  color: #4b5563;
-  font-size: 0.875rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footer-copy {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-h);
+}
+
+.footer-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+@media (max-width: 640px) {
+  .header-container {
+    padding: 14px 16px;
+  }
+  .content-container {
+    padding: 24px 16px;
+  }
+  .navigation-bar {
+    gap: 12px;
+  }
+  .nav-item {
+    font-size: 0.875rem;
+  }
 }
 </style>

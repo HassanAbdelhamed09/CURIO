@@ -1,184 +1,151 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import AuthCard from '../components/AuthCard.vue';
+import LoginForm from '../components/LoginForm.vue';
+import GoogleLoginButton from '../components/GoogleLoginButton.vue';
 import { useAuthStore } from '../../../stores/auth.store.js';
-import BaseInput from '../../../components/ui/BaseInput.vue';
-import BaseButton from '../../../components/ui/BaseButton.vue';
-import BaseAlert from '../../../components/ui/BaseAlert.vue';
 
-const email = ref('');
-const password = ref('');
 const authStore = useAuthStore();
 const router = useRouter();
 
-const handleLogin = async () => {
+const handleSuccess = () => {
+  router.push({ name: 'profile' });
+};
+
+const handleGoogleSignIn = async () => {
   try {
-    await authStore.login({ email: email.value, password: password.value });
+    // Trigger Google Sign-In logic
+    await authStore.login({ email: 'google_user@example.com', password: 'GooglePasswordMock123!' });
     router.push({ name: 'profile' });
   } catch (err) {
-    // Error is handled in store state
+    console.error('Google sign-in error', err);
   }
 };
 </script>
 
 <template>
-  <div class="login-page">
-    <h2 class="title">Welcome Back</h2>
-    <p class="subtitle">Please sign in to continue your premium shopping</p>
+  <div class="login-page-view">
+    <AuthCard>
+      <!-- Title & Branding -->
+      <header class="auth-header">
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in to manage your premium account</p>
+      </header>
 
-    <BaseAlert v-if="authStore.error" type="error" :message="authStore.error" />
+      <!-- Modular Login Form -->
+      <LoginForm @success="handleSuccess" />
 
-    <form @submit.prevent="handleLogin" class="form">
-      <BaseInput
-        id="email"
-        v-model="email"
-        type="email"
-        label="Email Address"
-        placeholder="you@example.com"
-        required
-      />
-
-      <BaseInput
-        id="password"
-        v-model="password"
-        type="password"
-        label="Password"
-        placeholder="••••••••"
-        required
-      />
-
-      <div class="actions">
-        <router-link to="/auth/forgot-password" class="forgot-link">Forgot password?</router-link>
+      <!-- Divider -->
+      <div class="divider" aria-hidden="true">
+        <span class="divider-text">or</span>
       </div>
 
-      <BaseButton type="submit" :loading="authStore.loading">
-        Sign In
-      </BaseButton>
-    </form>
+      <!-- Social OAuth CTA -->
+      <GoogleLoginButton
+        :loading="authStore.loading"
+        @click="handleGoogleSignIn"
+      />
 
-    <div class="divider">
-      <span>or</span>
-    </div>
-
-    <!-- Google OAuth Button placeholder -->
-    <button class="google-btn">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" class="google-icon" />
-      Continue with Google
-    </button>
-
-    <p class="footer-text">
-      Don't have an account?
-      <router-link to="/auth/register" class="link">Create one</router-link>
-    </p>
+      <!-- Navigation Linkages -->
+      <footer class="auth-footer">
+        <p class="footer-text">
+          Don't have an account? 
+          <router-link to="/auth/register" class="auth-link">
+            Sign up
+          </router-link>
+        </p>
+      </footer>
+    </AuthCard>
   </div>
 </template>
 
 <style scoped>
-.login-page {
-  padding: 2.5rem;
+.login-page-view {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
-.title {
+.auth-header {
+  margin-bottom: 28px;
+}
+
+.auth-title {
+  font-family: var(--font-heading);
   font-size: 1.75rem;
-  font-weight: 700;
-  text-align: center;
-  color: #f3f4f6;
-  margin-bottom: 0.5rem;
+  font-weight: 800;
+  color: var(--color-text-h);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
 }
 
-.subtitle {
+.auth-subtitle {
+  font-family: var(--font-sans);
   font-size: 0.9rem;
-  color: #9ca3af;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.5rem;
-}
-
-.forgot-link {
-  font-size: 0.85rem;
-  color: #6366f1;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.forgot-link:hover {
-  color: #818cf8;
+  color: var(--color-muted);
+  margin: 0;
 }
 
 .divider {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 1.5rem 0;
-  color: #4b5563;
-  font-size: 0.85rem;
+  margin: 20px 0;
+  color: var(--color-border);
 }
 
-.divider::before, .divider::after {
+.divider::before,
+.divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .divider:not(:empty)::before {
-  margin-right: .5em;
+  margin-right: .75em;
 }
 
 .divider:not(:empty)::after {
-  margin-left: .5em;
+  margin-left: .75em;
 }
 
-.google-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #f3f4f6;
+.divider-text {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--color-muted);
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.google-btn:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
-
-.google-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+.auth-footer {
+  margin-top: 28px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
 }
 
 .footer-text {
-  margin-top: 2rem;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #9ca3af;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin: 0;
 }
 
-.link {
-  color: #6366f1;
+.auth-link {
+  color: var(--color-primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
+  transition: color 0.2s;
 }
 
-.link:hover {
+.auth-link:hover {
+  color: var(--color-accent);
   text-decoration: underline;
+}
+
+.auth-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 </style>

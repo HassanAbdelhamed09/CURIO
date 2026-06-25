@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { User, LoginPayload, RegisterPayload } from '../types/auth.types.js';
+import type { User, LoginPayload, RegisterPayload } from '../types/auth.types.js';
 import { authApi } from '../api/auth.api.js';
 import { tokenStorage } from '../utils/tokenStorage.js';
 

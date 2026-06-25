@@ -1,13 +1,13 @@
-import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
+import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 import { useAuthStore } from '../stores/auth.store.js';
-import { UserRole } from '../types/auth.types.js';
+import type { UserRole } from '../types/auth.types.js';
 
 /**
  * Guest Guard: Redirects authenticated users away from auth pages (login, register, etc.).
  */
 export const guestGuard = (
-  to: RouteLocationNormalized,
-  from: RouteLocationNormalized,
+  _to: RouteLocationNormalized,
+  _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
   const authStore = useAuthStore();
@@ -22,7 +22,7 @@ export const guestGuard = (
  */
 export const authGuard = (
   to: RouteLocationNormalized,
-  from: RouteLocationNormalized,
+  _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
   const authStore = useAuthStore();
@@ -37,8 +37,8 @@ export const authGuard = (
  */
 export const roleGuard = (allowedRoles: UserRole[]) => {
   return (
-    to: RouteLocationNormalized,
-    from: RouteLocationNormalized,
+    _to: RouteLocationNormalized,
+    _from: RouteLocationNormalized,
     next: NavigationGuardNext
   ) => {
     const authStore = useAuthStore();

@@ -1,6 +1,6 @@
 import { http } from './http.js';
-import { LoginPayload, RegisterPayload, AuthResponse } from '../types/auth.types.js';
-import { ApiResponse } from '../types/api.types.js';
+import type { LoginPayload, RegisterPayload, AuthResponse } from '../types/auth.types.js';
+import type { ApiResponse } from '../types/api.types.js';
 
 export const authApi = {
   async register(payload: RegisterPayload): Promise<ApiResponse<AuthResponse>> {

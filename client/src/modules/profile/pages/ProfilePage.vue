@@ -2,223 +2,336 @@
 import { onMounted } from 'vue';
 import { useUserStore } from '../../../stores/user.store.js';
 import { useAuthStore } from '../../../stores/auth.store.js';
+import { useRouter } from 'vue-router';
+import UserAvatar from '../../../components/shared/UserAvatar.vue';
 import BaseLoader from '../../../components/ui/BaseLoader.vue';
 import BaseAlert from '../../../components/ui/BaseAlert.vue';
+import BaseButton from '../../../components/ui/BaseButton.vue';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
+const router = useRouter();
 
 onMounted(async () => {
   if (authStore.isAuthenticated) {
     try {
       await userStore.fetchProfile();
     } catch (err) {
-      console.error('Could not fetch user profile details', err);
+      console.error('Failed to load profile dashboard', err);
     }
   }
 });
+
+const handleLogout = async () => {
+  await authStore.logout();
+  router.push({ name: 'login' });
+};
 </script>
 
 <template>
-  <div class="profile-page">
-    <h1 class="page-title">My Account</h1>
+  <div class="profile-dashboard">
+    <header class="dashboard-header">
+      <h1 class="dashboard-title">Account Dashboard</h1>
+      <p class="dashboard-subtitle">Manage your profile details and settings</p>
+    </header>
 
-    <BaseLoader v-if="userStore.loading" />
+    <BaseLoader v-if="userStore.loading" text="Loading your account details..." />
     <BaseAlert v-else-if="userStore.error" type="error" :message="userStore.error" />
 
-    <div v-else-if="userStore.profile" class="profile-card">
-      <div class="profile-header">
-        <div class="avatar">
-          {{ userStore.profile.fullName.charAt(0).toUpperCase() }}
+    <div v-else-if="userStore.profile" class="dashboard-grid">
+      <!-- 1. Profile Summary Card -->
+      <section class="summary-card" aria-label="Profile Summary">
+        <div class="avatar-container">
+          <UserAvatar
+            :avatarUrl="userStore.profile.avatarUrl"
+            :fullName="userStore.profile.fullName"
+            size="lg"
+          />
         </div>
-        <div class="meta">
-          <h2 class="name">{{ userStore.profile.fullName }}</h2>
-          <span :class="['role-badge', userStore.profile.role]">
-            {{ userStore.profile.role.toUpperCase() }}
-          </span>
+        
+        <div class="meta-container">
+          <h2 class="user-name">{{ userStore.profile.fullName }}</h2>
+          <div class="badges-row">
+            <span :class="['badge', `badge-${userStore.profile.role}`]">
+              {{ userStore.profile.role }}
+            </span>
+            <span :class="['badge', `badge-${userStore.profile.status}`]">
+              {{ userStore.profile.status }}
+            </span>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="profile-details">
-        <div class="detail-row">
-          <span class="label">Email Address</span>
-          <span class="value">
-            {{ userStore.profile.email || 'Not Provided' }}
-            <span v-if="userStore.profile.emailVerified" class="verified">Verified</span>
-            <span v-else class="unverified">Unverified</span>
-          </span>
+      <!-- 2. Detailed Profile Fields -->
+      <section class="details-section" aria-label="Account Information">
+        <h3 class="section-heading">Account Details</h3>
+        
+        <div class="details-grid">
+          <!-- Email Field -->
+          <div class="detail-field">
+            <span class="field-label">Email Address</span>
+            <div class="field-value-row">
+              <span class="field-value">{{ userStore.profile.email || 'Not provided' }}</span>
+              <span
+                v-if="userStore.profile.email"
+                :class="['status-pill', userStore.profile.emailVerified ? 'pill-verified' : 'pill-unverified']"
+              >
+                {{ userStore.profile.emailVerified ? 'Verified' : 'Unverified' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Phone Field -->
+          <div class="detail-field">
+            <span class="field-label">Phone Number</span>
+            <div class="field-value-row">
+              <span class="field-value">{{ userStore.profile.phone || 'Not provided' }}</span>
+              <span
+                v-if="userStore.profile.phone"
+                :class="['status-pill', userStore.profile.phoneVerified ? 'pill-verified' : 'pill-unverified']"
+              >
+                {{ userStore.profile.phoneVerified ? 'Verified' : 'Unverified' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Login Details -->
+          <div class="detail-field">
+            <span class="field-label">Authentication Method</span>
+            <span class="field-value capitalize">{{ userStore.profile.provider }}</span>
+          </div>
+
+          <div v-if="userStore.profile.lastLoginAt" class="detail-field">
+            <span class="field-label">Last Login Timestamp</span>
+            <span class="field-value">
+              {{ new Date(userStore.profile.lastLoginAt).toLocaleString() }}
+            </span>
+          </div>
         </div>
 
-        <div class="detail-row">
-          <span class="label">Phone Number</span>
-          <span class="value">
-            {{ userStore.profile.phone || 'Not Provided' }}
-            <span v-if="userStore.profile.phoneVerified" class="verified">Verified</span>
-            <span v-else-if="userStore.profile.phone" class="unverified">Unverified</span>
-          </span>
-        </div>
-
-        <div class="detail-row">
-          <span class="label">Account Status</span>
-          <span class="value capitalize">{{ userStore.profile.status }}</span>
-        </div>
-
-        <div class="detail-row">
-          <span class="label">Onboarded via</span>
-          <span class="value capitalize">{{ userStore.profile.provider }}</span>
-        </div>
-      </div>
-
-      <div class="footer-actions">
-        <router-link to="/profile/edit" class="btn-edit">Edit Profile</router-link>
-      </div>
+        <!-- Dashboard Controls -->
+        <footer class="details-footer">
+          <router-link to="/profile/edit" class="edit-link">
+            <BaseButton variant="primary">Edit Profile</BaseButton>
+          </router-link>
+          
+          <BaseButton variant="secondary" @click="handleLogout" class="btn-dashboard-logout">
+            Logout
+          </BaseButton>
+        </footer>
+      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
-.profile-page {
-  max-width: 600px;
+.profile-dashboard {
+  max-width: 800px;
   margin: 0 auto;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #f3f4f6;
-  margin-bottom: 2rem;
+.dashboard-header {
+  margin-bottom: 32px;
+  text-align: left;
 }
 
-.profile-card {
-  background-color: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  padding: 2rem;
-}
-
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding-bottom: 1.5rem;
-}
-
-.avatar {
-  width: 5rem;
-  height: 5rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.dashboard-title {
+  font-family: var(--font-heading);
   font-size: 2.25rem;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  font-weight: 800;
+  color: var(--color-text-h);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.75px;
 }
 
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #f3f4f6;
+.dashboard-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-muted);
   margin: 0;
 }
 
-.role-badge {
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Summary Card Style */
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-soft);
+  box-sizing: border-box;
+}
+
+.avatar-container {
+  flex-shrink: 0;
+}
+
+.meta-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.user-name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-text-h);
+}
+
+.badges-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.25rem 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
   border-radius: 9999px;
-  width: max-content;
 }
 
-.customer {
-  background-color: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
+/* Badges coloring */
+.badge-customer {
+  background-color: rgba(15, 61, 94, 0.08);
+  color: var(--color-primary);
+}
+.badge-seller {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+.badge-admin {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: var(--color-error);
+}
+.badge-active {
+  background-color: rgba(16, 185, 129, 0.08);
+  color: var(--color-success);
+}
+.badge-blocked {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: var(--color-error);
 }
 
-.seller {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+/* Details Section Style */
+.details-section {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-soft);
+  box-sizing: border-box;
+  text-align: left;
 }
 
-.admin {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+.section-heading {
+  margin: 0 0 24px 0;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-h);
 }
 
-.profile-details {
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 28px;
+  margin-bottom: 28px;
+}
+
+.detail-field {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 4px;
 }
 
-.detail-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.label {
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.value {
-  font-size: 1.05rem;
-  color: #e5e7eb;
+.field-label {
+  font-family: var(--font-sans);
+  font-size: 0.825rem;
   font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.verified {
-  font-size: 0.75rem;
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.1);
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  margin-left: 0.5rem;
+.field-value {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-h);
 }
 
-.unverified {
-  font-size: 0.75rem;
-  color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.1);
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  margin-left: 0.5rem;
+.field-value-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  font-family: var(--font-sans);
+  font-size: 0.725rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.pill-verified {
+  background-color: rgba(16, 185, 129, 0.08);
+  color: var(--color-success);
+}
+.pill-unverified {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: var(--color-error);
 }
 
 .capitalize {
   text-transform: capitalize;
 }
 
-.footer-actions {
-  margin-top: 2.5rem;
+.details-footer {
+  display: flex;
+  gap: 16px;
 }
 
-.btn-edit {
-  display: inline-block;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: white;
+.edit-link {
   text-decoration: none;
-  font-weight: 600;
-  padding: 0.75rem 2rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
-.btn-edit:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+@media (max-width: 640px) {
+  .summary-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+  .meta-container {
+    text-align: center;
+    align-items: center;
+  }
+  .details-section {
+    padding: 20px;
+  }
+  .details-footer {
+    flex-direction: column;
+  }
+  .edit-link, .btn-dashboard-logout {
+    width: 100%;
+  }
 }
 </style>

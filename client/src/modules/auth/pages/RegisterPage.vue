@@ -1,170 +1,95 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '../../../stores/auth.store.js';
-import BaseInput from '../../../components/ui/BaseInput.vue';
-import BaseButton from '../../../components/ui/BaseButton.vue';
-import BaseAlert from '../../../components/ui/BaseAlert.vue';
+import AuthCard from '../components/AuthCard.vue';
+import RegisterForm from '../components/RegisterForm.vue';
 
-const fullName = ref('');
-const email = ref('');
-const password = ref('');
-const role = ref<'customer' | 'seller'>('customer');
-
-const authStore = useAuthStore();
 const router = useRouter();
 
-const handleRegister = async () => {
-  try {
-    await authStore.register({
-      fullName: fullName.value,
-      email: email.value,
-      password: password.value,
-      role: role.value,
-    });
-    router.push({ name: 'profile' });
-  } catch (err) {
-    // Handled in store
-  }
+const handleSuccess = () => {
+  router.push({ name: 'profile' });
 };
 </script>
 
 <template>
-  <div class="register-page">
-    <h2 class="title">Create Account</h2>
-    <p class="subtitle">Join our premium e-commerce platform today</p>
+  <div class="register-page-view">
+    <AuthCard>
+      <!-- Title & Branding -->
+      <header class="auth-header">
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">Join our premium e-commerce marketplace today</p>
+      </header>
 
-    <BaseAlert v-if="authStore.error" type="error" :message="authStore.error" />
+      <!-- Modular Registration Form -->
+      <RegisterForm @success="handleSuccess" />
 
-    <form @submit.prevent="handleRegister" class="form">
-      <BaseInput
-        id="name"
-        v-model="fullName"
-        type="text"
-        label="Full Name"
-        placeholder="Jane Doe"
-        required
-      />
-
-      <BaseInput
-        id="email"
-        v-model="email"
-        type="email"
-        label="Email Address"
-        placeholder="jane@example.com"
-        required
-      />
-
-      <BaseInput
-        id="password"
-        v-model="password"
-        type="password"
-        label="Password"
-        placeholder="•••••••• (min 8 chars)"
-        required
-      />
-
-      <div class="role-selector">
-        <span class="role-label">Register As:</span>
-        <div class="radio-group">
-          <label class="radio-label">
-            <input type="radio" v-model="role" value="customer" class="radio-input" />
-            <span class="custom-radio">Customer</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" v-model="role" value="seller" class="radio-input" />
-            <span class="custom-radio">Seller</span>
-          </label>
-        </div>
-      </div>
-
-      <BaseButton type="submit" :loading="authStore.loading" class="btn-submit">
-        Get Started
-      </BaseButton>
-    </form>
-
-    <p class="footer-text">
-      Already have an account?
-      <router-link to="/auth/login" class="link">Sign In</router-link>
-    </p>
+      <!-- Navigation Linkages -->
+      <footer class="auth-footer">
+        <p class="footer-text">
+          Already have an account? 
+          <router-link to="/auth/login" class="auth-link">
+            Sign in
+          </router-link>
+        </p>
+      </footer>
+    </AuthCard>
   </div>
 </template>
 
 <style scoped>
-.register-page {
-  padding: 2.5rem;
+.register-page-view {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
-.title {
+.auth-header {
+  margin-bottom: 28px;
+}
+
+.auth-title {
+  font-family: var(--font-heading);
   font-size: 1.75rem;
-  font-weight: 700;
-  text-align: center;
-  color: #f3f4f6;
-  margin-bottom: 0.5rem;
+  font-weight: 800;
+  color: var(--color-text-h);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
 }
 
-.subtitle {
+.auth-subtitle {
+  font-family: var(--font-sans);
   font-size: 0.9rem;
-  color: #9ca3af;
-  text-align: center;
-  margin-bottom: 2rem;
+  color: var(--color-muted);
+  margin: 0;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.role-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.role-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #9ca3af;
-}
-
-.radio-group {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.radio-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #f3f4f6;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.radio-input {
-  accent-color: #6366f1;
-}
-
-.btn-submit {
-  margin-top: 0.5rem;
+.auth-footer {
+  margin-top: 28px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
 }
 
 .footer-text {
-  margin-top: 2rem;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #9ca3af;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin: 0;
 }
 
-.link {
-  color: #6366f1;
+.auth-link {
+  color: var(--color-primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
+  transition: color 0.2s;
 }
 
-.link:hover {
+.auth-link:hover {
+  color: var(--color-accent);
   text-decoration: underline;
+}
+
+.auth-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 </style>

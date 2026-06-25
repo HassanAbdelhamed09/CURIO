@@ -1,5 +1,6 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import { authGuard, guestGuard, roleGuard } from './guards.js';
+import { createRouter, createWebHistory } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import { authGuard } from './guards.js';
 
 // Layouts
 import MainLayout from '../layouts/MainLayout.vue';

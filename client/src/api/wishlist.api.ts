@@ -1,6 +1,6 @@
 import { http } from './http.js';
-import { Wishlist } from '../types/wishlist.types.js';
-import { ApiResponse } from '../types/api.types.js';
+import type { Wishlist } from '../types/wishlist.types.js';
+import type { ApiResponse } from '../types/api.types.js';
 
 export const wishlistApi = {
   async getWishlist(): Promise<ApiResponse<Wishlist>> {
