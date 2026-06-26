@@ -302,29 +302,7 @@ input:focus, select:focus, textarea:focus {
   transform-origin: center;
 }
 
-/* Hero Floating animations using transform only for high performance */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
 
-.hero-float {
-  animation: float 5s ease-in-out infinite;
-}
-
-.hero-float-delay-1 {
-  animation: float 5s ease-in-out infinite;
-  animation-delay: 1.2s;
-}
-
-.hero-float-delay-2 {
-  animation: float 5s ease-in-out infinite;
-  animation-delay: 2.4s;
-}
 
 /* Site Footer link classes - strictly isolated to prevent nav capsule leakage */
 .site-footer__link {

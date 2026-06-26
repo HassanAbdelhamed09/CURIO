@@ -1,89 +1,63 @@
 <script setup lang="ts">
-import { Lock, Sparkles, Heart, Package, Star, ShieldCheck } from '@lucide/vue';
+import { Sparkles, ShieldCheck, ArrowUpRight } from '@lucide/vue';
 </script>
 
 <template>
   <div class="hero-scene-wrapper">
-    <!-- Brand Logo -->
-    <router-link to="/" class="logo" aria-label="Curio Home">
-      curio<span class="logo-dot">.</span>
-    </router-link>
+    <!-- Editorial Branding -->
+    <header class="hero-header">
+      <router-link to="/" class="logo" aria-label="Curio Home">
+        curio<span class="logo-dot">.</span>
+      </router-link>
+      <span class="brand-eyebrow">THE JOY OF DISCOVERY</span>
+      <h1 class="brand-editorial-title">Curated Objects.<br>Exquisite Design.</h1>
+      <p class="brand-editorial-text">
+        A sanctuary for those who appreciate character, craftsmanship, and the beauty of physical forms. We partner with independent ateliers to bring you unique, limited-run creations.
+      </p>
+    </header>
 
-    <!-- Value Prop Headers -->
-    <span class="brand-eyebrow">THE JOY OF DISCOVERY</span>
-    <h1 class="brand-editorial-title">Unique Goods.<br>Playful Spirit.</h1>
-    <p class="brand-editorial-text">
-      A playful marketplace for unique goods, premium finds, and beautifully curated shopping moments. Step back into your Curio world.
-    </p>
-
-    <!-- Main Interactive E-Commerce Scene Canvas -->
-    <div class="scene-canvas" aria-hidden="true">
-      <!-- Ambient Playful Background Blobs -->
-      <div class="scene-blob blob-orange"></div>
-      <div class="scene-blob blob-yellow"></div>
-
-      <!-- Dotted Path SVG Line (Connecting Orbiting Chips) -->
-      <svg class="doodle-line" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50,150 C120,40 280,60 320,130 C340,170 280,240 180,230" stroke="var(--color-primary)" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round"/>
-      </svg>
-
-      <!-- 1. Editorial Product Preview Card (Main Hero) -->
-      <div class="product-preview-card hero-float">
-        <div class="image-wrapper">
-          <img 
-            src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80" 
-            alt="Product Preview" 
-            class="product-img"
-          />
-          <span class="category-pill">ATELIER</span>
+    <!-- Curator's Showcase Frame (Neo-brutalist Luxury Placard) -->
+    <div class="showcase-frame" aria-hidden="true">
+      <div class="image-container">
+        <img 
+          src="https://images.unsplash.com/photo-1507646227500-4d389b0012be?auto=format&fit=crop&w=600&q=80" 
+          alt="Minimalist Design Object" 
+          class="showcase-img"
+        />
+        <div class="showcase-tag">CURATOR'S SELECTION // OBJECT 042</div>
+      </div>
+      
+      <div class="showcase-meta">
+        <div class="meta-header">
+          <h3 class="meta-title">Atelier Brass Incense Burner</h3>
+          <span class="meta-collection">Collection 02</span>
         </div>
-        <div class="card-details">
-          <div class="card-rating">
-            <Star v-for="i in 5" :key="i" class="rating-star-icon" />
-            <span class="rating-count">(48)</span>
-          </div>
-          <h3 class="card-title">Signature Chronograph</h3>
-          <div class="card-footer-row">
-            <span class="card-price">$249.00</span>
-            <span class="card-badge">DROP 01</span>
+        <div class="meta-footer">
+          <p class="meta-desc">Solid cast brass with a hand-polished organic finish, crafted in Kyoto.</p>
+          <div class="meta-cta">
+            <span class="cta-text">View Curation</span>
+            <ArrowUpRight class="cta-icon" />
           </div>
         </div>
-      </div>
-
-      <!-- 2. Orbiting Chip: Curated (Top Left) -->
-      <div class="orbit-chip chip-curated hero-float-delay-1">
-        <Sparkles class="chip-icon text-gold" />
-        <span class="chip-text">Curated</span>
-      </div>
-
-      <!-- 3. Orbiting Chip: Saved Item (Bottom Right) -->
-      <div class="orbit-chip chip-saved hero-float-delay-2">
-        <Heart class="chip-icon text-coral" />
-        <span class="chip-text">Saved</span>
-      </div>
-
-      <!-- 4. Orbiting Chip: In Stock (Top Right) -->
-      <div class="orbit-chip chip-stock hero-float-delay-1">
-        <Package class="chip-icon text-navy" />
-        <span class="chip-text">In Stock</span>
       </div>
     </div>
 
-    <!-- Trust Seals Row -->
-    <div class="trust-badge-row">
-      <div class="trust-badge-card">
-        <ShieldCheck class="badge-icon text-mint" />
-        <div class="badge-texts">
-          <span class="badge-title">Verified Curations</span>
-          <span class="badge-desc">100% Authentic Quality</span>
+    <!-- Curator's Manifesto Grid -->
+    <div class="manifesto-grid">
+      <div class="manifesto-card">
+        <div class="manifesto-header">
+          <Sparkles class="manifesto-icon text-orange" />
+          <h4 class="manifesto-title">Tactile Character</h4>
         </div>
+        <p class="manifesto-desc">Every piece is selected for its physical texture, weight, and material integrity.</p>
       </div>
-      <div class="trust-badge-card">
-        <Lock class="badge-icon text-orange" />
-        <div class="badge-texts">
-          <span class="badge-title">Secure Registry</span>
-          <span class="badge-desc">Encrypted Member Data</span>
+
+      <div class="manifesto-card">
+        <div class="manifesto-header">
+          <ShieldCheck class="manifesto-icon text-mint" />
+          <h4 class="manifesto-title">Verified Ateliers</h4>
         </div>
+        <p class="manifesto-desc">Direct provenance checks and exclusive collaborations with independent creators.</p>
       </div>
     </div>
   </div>
@@ -91,10 +65,15 @@ import { Lock, Sparkles, Heart, Package, Star, ShieldCheck } from '@lucide/vue';
 
 <style scoped>
 .hero-scene-wrapper {
-  position: relative;
-  z-index: 1;
   width: 100%;
   max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  box-sizing: border-box;
+}
+
+.hero-header {
   text-align: left;
 }
 
@@ -107,7 +86,7 @@ import { Lock, Sparkles, Heart, Package, Star, ShieldCheck } from '@lucide/vue';
   text-decoration: none;
   letter-spacing: -0.04em;
   display: inline-block;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   transition: transform var(--duration-fast) var(--ease-spring);
 }
 
@@ -121,278 +100,214 @@ import { Lock, Sparkles, Heart, Package, Star, ShieldCheck } from '@lucide/vue';
 
 .brand-eyebrow {
   font-family: var(--font-display);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   letter-spacing: 0.15em;
   font-weight: 700;
   color: var(--color-accent-2);
   display: block;
+  margin-bottom: 8px;
 }
 
 .brand-editorial-title {
   font-family: var(--font-heading);
-  font-size: 3.25rem;
+  font-size: 3rem;
   color: var(--color-surface);
-  margin: 12px 0 20px;
+  margin: 0 0 16px 0;
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
 .brand-editorial-text {
-  font-size: 1.05rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 40px;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
 }
 
-/* Interactive Scene Canvas */
-.scene-canvas {
-  position: relative;
-  width: 100%;
-  height: 320px;
-  margin-bottom: 48px;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 2px dashed rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  overflow: visible;
-}
-
-/* Ambient Blobs */
-.scene-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  pointer-events: none;
-  opacity: 0.25;
-}
-
-.blob-orange {
-  width: 140px;
-  height: 140px;
-  background-color: var(--color-accent);
-  top: 20px;
-  left: 30px;
-}
-
-.blob-yellow {
-  width: 120px;
-  height: 120px;
-  background-color: var(--color-accent-2);
-  bottom: 40px;
-  right: 50px;
-}
-
-/* Doodle connecting line */
-.doodle-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0.3;
-}
-
-/* Editorial Product Card */
-.product-preview-card {
-  position: absolute;
-  width: 220px;
+/* Curator's Showcase Frame (Neo-brutalist Premium Placard) */
+.showcase-frame {
   background-color: var(--color-surface);
-  border: 2px solid var(--color-primary);
+  border: 3px solid var(--color-primary);
   border-radius: var(--radius-md);
-  padding: 10px;
-  box-shadow: 0 16px 36px rgba(16, 16, 24, 0.25);
-  top: 45px;
-  left: 140px;
-  z-index: 5;
+  padding: 16px;
+  box-shadow: 10px 10px 0px var(--color-accent);
+  transition: all var(--duration-base) var(--ease-spring);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.image-wrapper {
+.showcase-frame:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 12px 12px 0px var(--color-primary);
+}
+
+.image-container {
   position: relative;
   width: 100%;
-  height: 130px;
+  height: 220px;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background-color: var(--color-bg-alt);
+  border: 2px solid var(--color-primary);
 }
 
-.product-img {
+.showcase-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.8s var(--ease-out);
 }
 
-.category-pill {
+.showcase-frame:hover .showcase-img {
+  transform: scale(1.05);
+}
+
+.showcase-tag {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  font-family: var(--font-display);
-  font-size: 0.6rem;
-  font-weight: 700;
+  top: 12px;
+  left: 12px;
   background-color: var(--color-primary);
   color: var(--color-surface);
-  padding: 3px 8px;
-  border-radius: 99px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.card-details {
-  padding: 10px 4px 4px;
+.showcase-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   text-align: left;
 }
 
-.card-rating {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-bottom: 4px;
-}
-
-.rating-star-icon {
-  width: 12px;
-  height: 12px;
-  fill: var(--color-accent-2);
-  color: var(--color-accent-2);
-}
-
-.rating-count {
-  color: var(--color-muted);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  margin-left: 4px;
-}
-
-.card-title {
-  font-family: var(--font-heading);
-  font-size: 1.15rem;
-  color: var(--color-primary);
-  margin: 4px 0 8px;
-}
-
-.card-footer-row {
+.meta-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  gap: 16px;
 }
 
-.card-price {
+.meta-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.meta-collection {
   font-family: var(--font-mono);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--color-accent);
+  white-space: nowrap;
 }
 
-.card-badge {
-  font-family: var(--font-display);
-  font-size: 0.65rem;
-  font-weight: 700;
-  border: 1px solid var(--color-border);
-  padding: 2px 6px;
-  border-radius: 4px;
+.meta-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.meta-desc {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  line-height: 1.5;
   color: var(--color-muted);
+  margin: 0;
+  flex-grow: 1;
 }
 
-/* Orbiting Chips */
-.orbit-chip {
-  position: absolute;
+.meta-cta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 2px;
+  white-space: nowrap;
+  transition: all var(--duration-fast) var(--ease-spring);
+}
+
+.showcase-frame:hover .meta-cta {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.cta-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Curator's Manifesto Grid */
+.manifesto-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 24px;
+}
+
+.manifesto-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.manifesto-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--color-surface);
-  border: 2px solid var(--color-primary);
-  border-radius: 99px;
-  padding: 8px 16px;
-  box-shadow: 0 8px 24px rgba(16, 16, 24, 0.15);
-  z-index: 6;
 }
 
-.chip-icon {
+.manifesto-icon {
   width: 16px;
   height: 16px;
-}
-
-.text-gold {
-  color: var(--color-accent-2);
-  fill: var(--color-accent-2);
-}
-
-.text-coral {
-  color: var(--color-accent);
-  fill: var(--color-accent);
-}
-
-.text-navy {
-  color: var(--color-primary);
-}
-
-.chip-text {
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.chip-curated {
-  top: 190px;
-  left: 20px;
-}
-
-.chip-saved {
-  top: 220px;
-  right: 20px;
-}
-
-.chip-stock {
-  top: 30px;
-  right: 40px;
-}
-
-/* Trust Seals Row */
-.trust-badge-row {
-  display: flex;
-  gap: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 32px;
-}
-
-.trust-badge-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 12px 18px;
-  border-radius: var(--radius-md);
-  flex: 1;
-}
-
-.badge-icon {
-  width: 24px;
-  height: 24px;
   flex-shrink: 0;
-}
-
-.text-mint {
-  color: var(--color-accent-3);
 }
 
 .text-orange {
   color: var(--color-accent);
 }
 
-.badge-texts {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
+.text-mint {
+  color: var(--color-accent-3);
 }
 
-.badge-title {
+.manifesto-title {
   font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-surface);
+  margin: 0;
 }
 
-.badge-desc {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.65);
+.manifesto-desc {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .manifesto-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
