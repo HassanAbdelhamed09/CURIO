@@ -28,8 +28,9 @@ const handleGoogleSignIn = async () => {
     <AuthCard>
       <!-- Title & Branding -->
       <header class="auth-header">
-        <h1 class="auth-title">Welcome Back</h1>
-        <p class="auth-subtitle">Sign in to manage your premium account</p>
+        <span class="auth-eyebrow">MEMBER PORTAL // SECURITY</span>
+        <h1 class="auth-title">Access the Curation</h1>
+        <p class="auth-subtitle">Establish secure handshake with your personal archive</p>
       </header>
 
       <!-- Modular Login Form -->
@@ -37,7 +38,7 @@ const handleGoogleSignIn = async () => {
 
       <!-- Divider -->
       <div class="divider" aria-hidden="true">
-        <span class="divider-text">or</span>
+        <span class="divider-text">Verification Method B</span>
       </div>
 
       <!-- Social OAuth CTA -->
@@ -49,9 +50,9 @@ const handleGoogleSignIn = async () => {
       <!-- Navigation Linkages -->
       <footer class="auth-footer">
         <p class="footer-text">
-          Don't have an account? 
+          Not registered in the archive? 
           <router-link to="/auth/register" class="auth-link">
-            Sign up
+            Establish Registry
           </router-link>
         </p>
       </footer>
@@ -67,22 +68,32 @@ const handleGoogleSignIn = async () => {
 }
 
 .auth-header {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.auth-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .auth-title {
   font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 2.2rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  margin: 0 0 6px 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 8px 0;
+  line-height: 1.15;
 }
 
 .auth-subtitle {
   font-family: var(--font-sans);
-  font-size: 0.9rem;
-  color: var(--color-muted);
+  font-size: 0.875rem;
+  color: var(--color-text);
   margin: 0;
 }
 
@@ -90,7 +101,7 @@ const handleGoogleSignIn = async () => {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 20px 0;
+  margin: 24px 0;
   color: var(--color-border);
 }
 
@@ -110,42 +121,49 @@ const handleGoogleSignIn = async () => {
 }
 
 .divider-text {
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
   color: var(--color-muted);
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.15em;
 }
 
 .auth-footer {
-  margin-top: 28px;
+  margin-top: 32px;
   border-top: 1px solid var(--color-border);
-  padding-top: 20px;
+  padding-top: 24px;
 }
 
 .footer-text {
   font-family: var(--font-sans);
-  font-size: 0.875rem;
-  color: var(--color-muted);
+  font-size: 0.85rem;
+  color: var(--color-text);
   margin: 0;
+  text-align: left;
 }
 
 .auth-link {
   color: var(--color-primary);
   text-decoration: none;
-  font-weight: 700;
-  transition: color 0.2s;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  transition: all 0.2s;
+  border-bottom: 1px solid transparent;
+  display: inline-block;
+  margin-left: 4px;
 }
 
 .auth-link:hover {
-  color: var(--color-accent);
-  text-decoration: underline;
+  color: var(--color-text-h);
+  border-bottom-color: var(--color-text-h);
 }
 
 .auth-link:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 1px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 </style>

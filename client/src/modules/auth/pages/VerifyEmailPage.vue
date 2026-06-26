@@ -73,8 +73,9 @@ onMounted(() => {
   <div class="verify-email-view">
     <AuthCard>
       <header class="auth-header">
-        <h1 class="auth-title">Email Verification</h1>
-        <p class="auth-subtitle">Securing your premium account experience</p>
+        <span class="auth-eyebrow">MEMBER PORTAL // VERIFICATION</span>
+        <h1 class="auth-title">Token Verification</h1>
+        <p class="auth-subtitle">Establishing authenticity handshake with ÆTHERIS servers</p>
       </header>
 
       <!-- 1. Verifying State -->
@@ -93,7 +94,7 @@ onMounted(() => {
         <!-- Success CTA -->
         <router-link v-if="success" to="/auth/login" class="action-link">
           <BaseButton variant="primary" fullWidth>
-            Continue to Login
+            Access Portal
           </BaseButton>
         </router-link>
 
@@ -125,11 +126,11 @@ onMounted(() => {
             fullWidth
             class="resend-cta"
           >
-            Resend Verification Email
+            Resend Verification Link
           </BaseButton>
           
           <router-link to="/auth/login" class="back-to-login">
-            Back to Login
+            Return to Sign In
           </router-link>
         </div>
       </div>
@@ -145,22 +146,32 @@ onMounted(() => {
 }
 
 .auth-header {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.auth-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .auth-title {
   font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 2.2rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  margin: 0 0 6px 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 8px 0;
+  line-height: 1.15;
 }
 
 .auth-subtitle {
   font-family: var(--font-sans);
-  font-size: 0.9rem;
-  color: var(--color-muted);
+  font-size: 0.875rem;
+  color: var(--color-text);
   margin: 0;
 }
 
@@ -190,9 +201,9 @@ onMounted(() => {
 
 .error-explanation {
   font-family: var(--font-sans);
-  font-size: 0.875rem;
-  color: var(--color-muted);
-  line-height: 145%;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  line-height: 1.6;
   margin: 0;
   text-align: left;
 }
@@ -202,17 +213,21 @@ onMounted(() => {
 }
 
 .back-to-login {
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   font-weight: 600;
   color: var(--color-text);
   text-decoration: none;
   margin-top: 12px;
   align-self: center;
+  border-bottom: 1px solid transparent;
+  display: inline-block;
 }
 
 .back-to-login:hover {
   color: var(--color-primary);
-  text-decoration: underline;
+  border-bottom-color: var(--color-primary);
 }
 </style>

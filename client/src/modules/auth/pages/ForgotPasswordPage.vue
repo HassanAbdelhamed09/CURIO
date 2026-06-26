@@ -49,8 +49,9 @@ const handleRequestReset = async () => {
   <div class="forgot-password-view">
     <AuthCard>
       <header class="auth-header">
-        <h1 class="auth-title">Recover Password</h1>
-        <p class="auth-subtitle">Enter your email and we'll send reset instructions</p>
+        <span class="auth-eyebrow">MEMBER PORTAL // SECURITY</span>
+        <h1 class="auth-title">Recover Credentials</h1>
+        <p class="auth-subtitle">Provide your registered email to request security key reset</p>
       </header>
 
       <BaseAlert
@@ -80,14 +81,14 @@ const handleRequestReset = async () => {
           fullWidth
           class="submit-cta"
         >
-          Send Reset Link
+          Dispatch Recovery Key
         </BaseButton>
       </form>
 
       <!-- Back to Login Navigation -->
       <footer class="auth-footer">
         <router-link to="/auth/login" class="back-link">
-          Back to Sign In
+          Return to Sign In
         </router-link>
       </footer>
     </AuthCard>
@@ -102,27 +103,37 @@ const handleRequestReset = async () => {
 }
 
 .auth-header {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.auth-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .auth-title {
   font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 2.2rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  margin: 0 0 6px 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 8px 0;
+  line-height: 1.15;
 }
 
 .auth-subtitle {
   font-family: var(--font-sans);
-  font-size: 0.9rem;
-  color: var(--color-muted);
+  font-size: 0.875rem;
+  color: var(--color-text);
   margin: 0;
 }
 
 .forgot-alert {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .form-layout {
@@ -136,28 +147,31 @@ const handleRequestReset = async () => {
 }
 
 .auth-footer {
-  margin-top: 28px;
+  margin-top: 32px;
   border-top: 1px solid var(--color-border);
-  padding-top: 20px;
+  padding-top: 24px;
 }
 
 .back-link {
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   font-weight: 600;
   color: var(--color-text);
   text-decoration: none;
   transition: color 0.2s;
+  border-bottom: 1px solid transparent;
+  display: inline-block;
 }
 
 .back-link:hover {
   color: var(--color-primary);
-  text-decoration: underline;
+  border-bottom-color: var(--color-primary);
 }
 
 .back-link:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 1px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 </style>

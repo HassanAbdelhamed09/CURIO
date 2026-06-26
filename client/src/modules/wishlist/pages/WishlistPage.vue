@@ -25,25 +25,25 @@ const resolveProductDetails = (productId: string) => {
       name: 'Signature Chronograph Leather Watch',
       price: 249.00,
       image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80',
-      category: 'Accessories',
+      category: 'Chronometry',
     },
     '60d5ecb863a6c22c5c8b4998': {
       name: 'Premium Leather Overnight Duffle',
       price: 189.00,
       image: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=300&q=80',
-      category: 'Bags',
+      category: 'Leather Goods',
     },
     'default': {
-      name: `Premium Marketplace Item (${productId.substring(0, 8)})`,
+      name: `Premium Curation Item (${productId.substring(0, 8)})`,
       price: 99.99,
       image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80',
-      category: 'Marketplace',
+      category: 'Exhibition',
     }
   };
 
   return catalog[productId] || {
     ...catalog['default'],
-    name: `Premium Marketplace Item (${productId.substring(0, 8)})`
+    name: `Premium Curation Item (${productId.substring(0, 8)})`
   };
 };
 
@@ -62,12 +62,13 @@ const handleRemoveItem = async (productId: string) => {
 <template>
   <div class="wishlist-view">
     <header class="page-header">
-      <h1 class="page-title">My Wishlist</h1>
-      <p class="page-subtitle">Manage the premium items you've saved for later</p>
+      <span class="page-eyebrow">PORTAL // ARCHIVE COLLECTIONS</span>
+      <h1 class="page-title">Private Archive</h1>
+      <p class="page-subtitle">A curated index of your selected masterworks, precision instruments, and personal treasures.</p>
     </header>
 
     <!-- 1. Loading State -->
-    <BaseLoader v-if="wishlistStore.loading && !removingId" text="Loading your saved wishlist items..." />
+    <BaseLoader v-if="wishlistStore.loading && !removingId" text="Retrieving archived curations..." />
     
     <!-- 2. Error State -->
     <BaseAlert v-else-if="wishlistStore.error" type="error" :message="wishlistStore.error" />
@@ -77,7 +78,7 @@ const handleRemoveItem = async (productId: string) => {
       <!-- Empty State -->
       <WishlistEmptyState v-if="!wishlistStore.wishlist || wishlistStore.wishlist.items.length === 0" />
 
-      <!-- Active Wishlist Grid -->
+      <!-- Active Wishlist Grid (Art Gallery Exhibition Grid) -->
       <div v-else class="wishlist-grid-layout">
         <div
           v-for="item in wishlistStore.wishlist.items"
@@ -93,13 +94,14 @@ const handleRemoveItem = async (productId: string) => {
               loading="lazy"
             />
             <span class="product-category-tag">
-              {{ resolveProductDetails(item.productId).category }}
+              [ {{ resolveProductDetails(item.productId).category }} ]
             </span>
           </div>
 
           <!-- Product Details Block -->
           <div class="product-details">
             <div class="meta-row">
+              <span class="product-serial">CATALOG REF // {{ item.productId.substring(0, 10).toUpperCase() }}</span>
               <h3 class="product-title">
                 {{ resolveProductDetails(item.productId).name }}
               </h3>
@@ -108,15 +110,10 @@ const handleRemoveItem = async (productId: string) => {
               </p>
             </div>
             
-            <p class="integration-notice">
-              ID: {{ item.productId }}
-            </p>
-            
             <!-- Actions (Add to Cart placeholder, and Remove CTA) -->
             <div class="product-card-actions">
-              <!-- Clear/Move to Cart visual button -->
-              <BaseButton variant="secondary" size="sm" class="btn-cart">
-                Add to Cart
+              <BaseButton variant="primary" size="sm" class="btn-cart">
+                Acquire
               </BaseButton>
               
               <BaseButton
@@ -126,7 +123,7 @@ const handleRemoveItem = async (productId: string) => {
                 @click="handleRemoveItem(item.productId)"
                 class="btn-remove"
               >
-                Remove
+                Release
               </BaseButton>
             </div>
           </div>
@@ -142,55 +139,82 @@ const handleRemoveItem = async (productId: string) => {
 }
 
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
   text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 24px;
+}
+
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .page-title {
   font-family: var(--font-heading);
-  font-size: 2.25rem;
-  font-weight: 800;
+  font-size: 2.5rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  margin: 0 0 6px 0;
-  letter-spacing: -0.75px;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
 }
 
 .page-subtitle {
   font-family: var(--font-sans);
-  font-size: 1rem;
-  color: var(--color-muted);
+  font-size: 0.95rem;
+  color: var(--color-text);
   margin: 0;
 }
 
 .wishlist-grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 32px;
 }
 
+/* Luxury Card (Art Gallery Exhibition Grid) */
 .wishlist-item-card {
   display: flex;
   flex-direction: column;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-soft);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-sizing: border-box;
 }
 
+.wishlist-item-card::before {
+  content: '+';
+  position: absolute;
+  top: -9px;
+  left: -5px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--color-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
 .wishlist-item-card:hover {
+  border-color: var(--color-primary);
   transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+}
+
+.wishlist-item-card:hover::before {
+  opacity: 0.8;
 }
 
 .product-image-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 75%; /* 4:3 Aspect Ratio */
+  padding-top: 85%; /* Slightly taller than 4:3 for elegant scale */
   background-color: var(--color-bg);
   overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .product-image {
@@ -200,34 +224,35 @@ const handleRemoveItem = async (productId: string) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  filter: grayscale(15%);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .wishlist-item-card:hover .product-image {
-  transform: scale(1.04);
+  transform: scale(1.05);
+  filter: grayscale(0%);
 }
 
 .product-category-tag {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  background-color: rgba(15, 61, 94, 0.85);
+  top: 16px;
+  left: 16px;
+  background-color: rgba(7, 8, 10, 0.85);
   backdrop-filter: blur(4px);
-  color: #ffffff;
-  font-family: var(--font-sans);
-  font-size: 0.725rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   padding: 4px 10px;
-  border-radius: var(--radius-sm);
+  border: 1px solid rgba(197, 168, 128, 0.2);
 }
 
 .product-details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 20px;
+  gap: 16px;
+  padding: 24px;
   flex-grow: 1;
   text-align: left;
 }
@@ -235,52 +260,44 @@ const handleRemoveItem = async (productId: string) => {
 .meta-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+}
+
+.product-serial {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
 }
 
 .product-title {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.3rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  line-height: 135%;
-  /* Clamp text to 2 lines */
+  line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  height: 2.7em;
+  height: 2.5em;
 }
 
 .product-price {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 1.15rem;
-  font-weight: 800;
+  margin: 8px 0 0 0;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 500;
   color: var(--color-primary);
-}
-
-/* Dark mode adjustment for price contrast */
-@media (prefers-color-scheme: dark) {
-  .product-price {
-    color: var(--color-accent);
-  }
-}
-
-.integration-notice {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  color: var(--color-muted);
-  margin: 0;
 }
 
 .product-card-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 16px;
   border-top: 1px solid var(--color-border);
 }
 
@@ -291,10 +308,14 @@ const handleRemoveItem = async (productId: string) => {
 .btn-remove {
   width: 100%;
   color: var(--color-muted) !important;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
 }
 
 .btn-remove:hover {
   color: var(--color-error) !important;
-  background-color: rgba(239, 68, 68, 0.05) !important;
+  border-bottom-color: var(--color-error) !important;
 }
 </style>

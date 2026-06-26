@@ -17,7 +17,7 @@ import BaseButton from '../../../components/ui/BaseButton.vue';
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="1.5"
+        stroke-width="1.2"
         stroke-linecap="round"
         stroke-linejoin="round"
       >
@@ -26,15 +26,15 @@ import BaseButton from '../../../components/ui/BaseButton.vue';
     </div>
 
     <!-- Explanation Copy -->
-    <h3 class="empty-title">Your Wishlist is Empty</h3>
+    <h3 class="empty-title">Archive Vacant</h3>
     <p class="empty-description">
-      Save items you love here so you can easily track, buy, or share them later.
+      Your private collection archive is currently empty. Explore the active curation to save masterworks of interest.
     </p>
 
     <!-- Exploration CTA -->
     <router-link to="/" class="explore-link">
       <BaseButton variant="primary" class="explore-btn">
-        Explore Products
+        Browse Collection
       </BaseButton>
     </router-link>
   </div>
@@ -47,54 +47,55 @@ import BaseButton from '../../../components/ui/BaseButton.vue';
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 64px 32px;
+  padding: 80px 40px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
   max-width: 500px;
   margin: 0 auto;
   box-sizing: border-box;
+  position: relative;
+}
+
+.wishlist-empty::before {
+  content: '+';
+  position: absolute;
+  top: -9px;
+  left: -5px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--color-primary);
+  opacity: 0.6;
 }
 
 .empty-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background-color: rgba(15, 61, 94, 0.05);
+  width: 80px;
+  height: 80px;
+  border: 1px solid var(--color-border);
   color: var(--color-primary);
-  margin-bottom: 24px;
-}
-
-/* Subtle dark mode adjust for icon wrapper background */
-@media (prefers-color-scheme: dark) {
-  .empty-icon-wrapper {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: var(--color-accent);
-  }
+  margin-bottom: 32px;
 }
 
 .empty-heart-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
 }
 
 .empty-title {
   font-family: var(--font-heading);
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  margin: 0 0 10px 0;
+  margin: 0 0 12px 0;
 }
 
 .empty-description {
   font-family: var(--font-sans);
-  font-size: 0.95rem;
-  color: var(--color-muted);
-  line-height: 150%;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.6;
   margin: 0 0 32px 0;
   max-width: 340px;
 }
@@ -102,7 +103,7 @@ import BaseButton from '../../../components/ui/BaseButton.vue';
 .explore-link {
   text-decoration: none;
   width: 100%;
-  max-width: 200px;
+  max-width: 220px;
 }
 
 .explore-btn {

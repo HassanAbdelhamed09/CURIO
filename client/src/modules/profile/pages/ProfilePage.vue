@@ -31,29 +31,33 @@ const handleLogout = async () => {
 <template>
   <div class="profile-dashboard">
     <header class="dashboard-header">
-      <h1 class="dashboard-title">Account Dashboard</h1>
-      <p class="dashboard-subtitle">Manage your profile details and settings</p>
+      <span class="dashboard-eyebrow">PORTAL // REGISTRY DIRECTORY</span>
+      <h1 class="dashboard-title">Collector Portal</h1>
+      <p class="dashboard-subtitle">Review your secure registry, membership status, and archive metrics.</p>
     </header>
 
-    <BaseLoader v-if="userStore.loading" text="Loading your account details..." />
+    <BaseLoader v-if="userStore.loading" text="Retrieving registry credentials..." />
     <BaseAlert v-else-if="userStore.error" type="error" :message="userStore.error" />
 
     <div v-else-if="userStore.profile" class="dashboard-grid">
       <!-- 1. Profile Summary Card -->
       <section class="summary-card" aria-label="Profile Summary">
         <div class="avatar-container">
-          <UserAvatar
-            :avatarUrl="userStore.profile.avatarUrl"
-            :fullName="userStore.profile.fullName"
-            size="lg"
-          />
+          <div class="avatar-frame">
+            <UserAvatar
+              :avatarUrl="userStore.profile.avatarUrl"
+              :fullName="userStore.profile.fullName"
+              size="lg"
+            />
+          </div>
         </div>
         
         <div class="meta-container">
+          <span class="member-serial">MEMBER ID // AE-{{ userStore.profile.id ? userStore.profile.id.substring(0, 8).toUpperCase() : 'MEMBER' }}</span>
           <h2 class="user-name">{{ userStore.profile.fullName }}</h2>
           <div class="badges-row">
             <span :class="['badge', `badge-${userStore.profile.role}`]">
-              {{ userStore.profile.role }}
+              {{ userStore.profile.role === 'customer' ? 'Collector' : userStore.profile.role }}
             </span>
             <span :class="['badge', `badge-${userStore.profile.status}`]">
               {{ userStore.profile.status }}
@@ -64,46 +68,46 @@ const handleLogout = async () => {
 
       <!-- 2. Detailed Profile Fields -->
       <section class="details-section" aria-label="Account Information">
-        <h3 class="section-heading">Account Details</h3>
+        <h3 class="section-heading">Archive Credentials</h3>
         
         <div class="details-grid">
           <!-- Email Field -->
           <div class="detail-field">
-            <span class="field-label">Email Address</span>
+            <span class="field-label">Registry Email</span>
             <div class="field-value-row">
               <span class="field-value">{{ userStore.profile.email || 'Not provided' }}</span>
               <span
                 v-if="userStore.profile.email"
                 :class="['status-pill', userStore.profile.emailVerified ? 'pill-verified' : 'pill-unverified']"
               >
-                {{ userStore.profile.emailVerified ? 'Verified' : 'Unverified' }}
+                {{ userStore.profile.emailVerified ? 'AUTHENTICATED' : 'UNVERIFIED' }}
               </span>
             </div>
           </div>
 
           <!-- Phone Field -->
           <div class="detail-field">
-            <span class="field-label">Phone Number</span>
+            <span class="field-label">Secure Phone</span>
             <div class="field-value-row">
               <span class="field-value">{{ userStore.profile.phone || 'Not provided' }}</span>
               <span
                 v-if="userStore.profile.phone"
                 :class="['status-pill', userStore.profile.phoneVerified ? 'pill-verified' : 'pill-unverified']"
               >
-                {{ userStore.profile.phoneVerified ? 'Verified' : 'Unverified' }}
+                {{ userStore.profile.phoneVerified ? 'AUTHENTICATED' : 'UNVERIFIED' }}
               </span>
             </div>
           </div>
 
           <!-- Login Details -->
           <div class="detail-field">
-            <span class="field-label">Authentication Method</span>
+            <span class="field-label">Handshake Protocol</span>
             <span class="field-value capitalize">{{ userStore.profile.provider }}</span>
           </div>
 
           <div v-if="userStore.profile.lastLoginAt" class="detail-field">
-            <span class="field-label">Last Login Timestamp</span>
-            <span class="field-value">
+            <span class="field-label">Last Successful Handshake</span>
+            <span class="field-value monospace-val">
               {{ new Date(userStore.profile.lastLoginAt).toLocaleString() }}
             </span>
           </div>
@@ -112,11 +116,11 @@ const handleLogout = async () => {
         <!-- Dashboard Controls -->
         <footer class="details-footer">
           <router-link to="/profile/edit" class="edit-link">
-            <BaseButton variant="primary">Edit Profile</BaseButton>
+            <BaseButton variant="primary">Edit Registry</BaseButton>
           </router-link>
           
           <BaseButton variant="secondary" @click="handleLogout" class="btn-dashboard-logout">
-            Logout
+            Terminate Session
           </BaseButton>
         </footer>
       </section>
@@ -126,52 +130,80 @@ const handleLogout = async () => {
 
 <style scoped>
 .profile-dashboard {
-  max-width: 800px;
+  max-width: 850px;
   margin: 0 auto;
 }
 
 .dashboard-header {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
   text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 24px;
+}
+
+.dashboard-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .dashboard-title {
   font-family: var(--font-heading);
-  font-size: 2.25rem;
-  font-weight: 800;
+  font-size: 2.5rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  margin: 0 0 6px 0;
-  letter-spacing: -0.75px;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
 }
 
 .dashboard-subtitle {
   font-family: var(--font-sans);
-  font-size: 1rem;
-  color: var(--color-muted);
+  font-size: 0.95rem;
+  color: var(--color-text);
   margin: 0;
 }
 
 .dashboard-grid {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 
-/* Summary Card Style */
+/* Summary Card Style (Brutalist Curation Frame) */
 .summary-card {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 32px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 28px;
+  padding: 32px;
   box-shadow: var(--shadow-soft);
   box-sizing: border-box;
+  position: relative;
+}
+
+.summary-card::before {
+  content: '+';
+  position: absolute;
+  top: -9px;
+  left: -5px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--color-primary);
+  opacity: 0.6;
 }
 
 .avatar-container {
   flex-shrink: 0;
+}
+
+.avatar-frame {
+  border: 1px solid var(--color-primary);
+  padding: 6px;
+  display: inline-flex;
 }
 
 .meta-container {
@@ -181,49 +213,63 @@ const handleLogout = async () => {
   text-align: left;
 }
 
+.member-serial {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+}
+
 .user-name {
   margin: 0;
   font-family: var(--font-heading);
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 2rem;
+  font-weight: 400;
   color: var(--color-text-h);
+  line-height: 1.1;
 }
 
 .badges-row {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .badge {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 4px 10px;
-  border-radius: 9999px;
+  letter-spacing: 0.1em;
+  padding: 4px 12px;
+  border: 1px solid transparent;
 }
 
 /* Badges coloring */
 .badge-customer {
-  background-color: rgba(15, 61, 94, 0.08);
+  border-color: rgba(197, 168, 128, 0.3);
+  background-color: rgba(197, 168, 128, 0.05);
   color: var(--color-primary);
 }
 .badge-seller {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #92400e;
+  border-color: rgba(143, 92, 56, 0.3);
+  background-color: rgba(143, 92, 56, 0.05);
+  color: var(--color-accent-light);
 }
 .badge-admin {
-  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+  background-color: rgba(239, 68, 68, 0.05);
   color: var(--color-error);
 }
 .badge-active {
-  background-color: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  background-color: rgba(16, 185, 129, 0.05);
   color: var(--color-success);
 }
 .badge-blocked {
-  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.5);
+  background-color: rgba(239, 68, 68, 0.1);
   color: var(--color-error);
 }
 
@@ -231,74 +277,83 @@ const handleLogout = async () => {
 .details-section {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 32px;
+  padding: 40px;
   box-shadow: var(--shadow-soft);
   box-sizing: border-box;
   text-align: left;
 }
 
 .section-heading {
-  margin: 0 0 24px 0;
+  margin: 0 0 32px 0;
   font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 400;
   color: var(--color-text-h);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 12px;
 }
 
 .details-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 24px;
   border-bottom: 1px solid var(--color-border);
-  padding-bottom: 28px;
-  margin-bottom: 28px;
+  padding-bottom: 32px;
+  margin-bottom: 32px;
 }
 
 .detail-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .field-label {
-  font-family: var(--font-sans);
-  font-size: 0.825rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
   color: var(--color-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.1em;
 }
 
 .field-value {
   font-family: var(--font-sans);
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-h);
+}
+
+.monospace-val {
+  font-family: var(--font-mono) !important;
+  font-size: 0.9rem;
 }
 
 .field-value-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
 .status-pill {
-  font-family: var(--font-sans);
-  font-size: 0.725rem;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
   padding: 2px 8px;
-  border-radius: 4px;
+  border: 1px solid transparent;
+  letter-spacing: 0.05em;
 }
 
 .pill-verified {
-  background-color: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
   color: var(--color-success);
+  background-color: rgba(16, 185, 129, 0.05);
 }
 .pill-unverified {
-  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
   color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.05);
 }
 
 .capitalize {
@@ -307,7 +362,7 @@ const handleLogout = async () => {
 
 .details-footer {
   display: flex;
-  gap: 16px;
+  gap: 20px;
 }
 
 .edit-link {
@@ -318,14 +373,14 @@ const handleLogout = async () => {
   .summary-card {
     flex-direction: column;
     text-align: center;
-    padding: 20px;
+    padding: 24px 16px;
   }
   .meta-container {
     text-align: center;
     align-items: center;
   }
   .details-section {
-    padding: 20px;
+    padding: 24px 16px;
   }
   .details-footer {
     flex-direction: column;

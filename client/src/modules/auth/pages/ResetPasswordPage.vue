@@ -90,16 +90,18 @@ const handleReset = async () => {
   <div class="reset-password-view">
     <AuthCard>
       <header class="auth-header">
-        <h1 class="auth-title">Reset Password</h1>
-        <p class="auth-subtitle">Enter a new secure password for your account</p>
+        <span class="auth-eyebrow">MEMBER PORTAL // SECURITY</span>
+        <h1 class="auth-title">Establish New Key</h1>
+        <p class="auth-subtitle">Configure your new cryptographic security credentials</p>
       </header>
 
-      <BaseAlert v-if="globalError" type="error" :message="globalError" />
+      <BaseAlert v-if="globalError" type="error" :message="globalError" class="reset-alert" />
       
       <BaseAlert
         v-if="success"
         type="success"
         message="Password updated successfully! Redirecting you to login..."
+        class="reset-alert"
       />
 
       <form v-if="!success && token" @submit.prevent="handleReset" novalidate class="form-layout">
@@ -133,7 +135,7 @@ const handleReset = async () => {
           fullWidth
           class="submit-cta"
         >
-          Update Password
+          Update Security Credentials
         </BaseButton>
       </form>
     </AuthCard>
@@ -148,23 +150,37 @@ const handleReset = async () => {
 }
 
 .auth-header {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.auth-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .auth-title {
   font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 2.2rem;
+  font-weight: 400;
   color: var(--color-text-h);
-  margin: 0 0 6px 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 8px 0;
+  line-height: 1.15;
 }
 
 .auth-subtitle {
   font-family: var(--font-sans);
-  font-size: 0.9rem;
-  color: var(--color-muted);
+  font-size: 0.875rem;
+  color: var(--color-text);
   margin: 0;
+}
+
+.reset-alert {
+  margin-bottom: 24px;
 }
 
 .form-layout {
