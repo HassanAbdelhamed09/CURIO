@@ -5,6 +5,7 @@ import BaseInput from '../../../components/ui/BaseInput.vue';
 import BaseButton from '../../../components/ui/BaseButton.vue';
 import BaseAlert from '../../../components/ui/BaseAlert.vue';
 import { validateEmail } from '../../../utils/validation.js';
+import { authApi } from '../../../api/auth.api.js';
 
 const email = ref('');
 const emailError = ref('');
@@ -25,18 +26,22 @@ const validateForm = () => {
   return true;
 };
 
-const handleRequestReset = () => {
+const handleRequestReset = async () => {
   if (!validateForm()) return;
 
   loading.value = true;
   message.value = '';
   
-  // Simulate dispatching email
-  setTimeout(() => {
+  try {
+    const response = await authApi.forgotPassword(email.value);
     loading.value = false;
     success.value = true;
-    message.value = 'A secure password recovery link has been dispatched to your email address.';
-  }, 1500);
+    message.value = response.message || 'A secure password recovery link has been dispatched to your email address.';
+  } catch (err: any) {
+    loading.value = false;
+    success.value = false;
+    message.value = err.response?.data?.message || 'Failed to request password reset. Please try again.';
+  }
 };
 </script>
 

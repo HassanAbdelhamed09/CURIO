@@ -2,9 +2,6 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { authService } from './auth.service.js';
 
-/**
- * Controller to handle incoming HTTP requests for authentication.
- */
 export class AuthController {
   /**
    * Public registration route.
@@ -12,7 +9,6 @@ export class AuthController {
   public register = asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.register(req.body);
     
-    // In production, refresh token is set as a secure cookie
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -57,10 +53,11 @@ export class AuthController {
    * Google OAuth login route.
    */
   public googleLogin = asyncHandler(async (req: Request, res: Response) => {
-    // TODO: Implement Google authentication verification
-    res.status(200).json({
-      success: true,
-      message: 'Google login successful (mock).',
+    // Currently redirects to service boundary error until configured
+    res.status(501).json({
+      success: false,
+      message: 'Google OAuth package is not fully configured on server.',
+      code: 'OAUTH_UNIMPLEMENTED',
     });
   });
 
@@ -98,6 +95,88 @@ export class AuthController {
     res.status(200).json({
       success: true,
       message: 'Logged out successfully.',
+    });
+  });
+
+  /**
+   * Verify Email route.
+   */
+  public verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+    const token = req.query.token as string;
+    await authService.verifyEmail(token);
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully.',
+    });
+  });
+
+  /**
+   * Resend Verification link route.
+   */
+  public resendVerification = asyncHandler(async (req: Request, res: Response) => {
+    await authService.resendVerification(req.body.email);
+    res.status(200).json({
+      success: true,
+      message: 'Verification email sent successfully.',
+    });
+  });
+
+  /**
+   * Forgot Password request route.
+   */
+  public forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+    await authService.forgotPassword(req.body.email);
+    res.status(200).json({
+      success: true,
+      message: 'If the email exists, a password reset link has been dispatched.',
+    });
+  });
+
+  /**
+   * Reset Password route.
+   */
+  public resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { token, password } = req.body;
+    await authService.resetPassword(token, password);
+    res.status(200).json({
+      success: true,
+      message: 'Password has been reset successfully.',
+    });
+  });
+
+  /**
+   * Change Password route (Authenticated).
+   */
+  public changePassword = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user!._id.toString();
+    const { oldPassword, newPassword } = req.body;
+    await authService.changePassword(userId, oldPassword, newPassword);
+    res.status(200).json({
+      success: true,
+      message: 'Password changed successfully.',
+    });
+  });
+
+  /**
+   * Phone OTP request route.
+   */
+  public requestPhoneOtp = asyncHandler(async (req: Request, res: Response) => {
+    await authService.requestPhoneOtp(req.body.phone);
+    res.status(200).json({
+      success: true,
+      message: 'OTP has been dispatched via SMS successfully.',
+    });
+  });
+
+  /**
+   * Phone OTP verification route.
+   */
+  public verifyPhoneOtp = asyncHandler(async (req: Request, res: Response) => {
+    const { phone, otp } = req.body;
+    await authService.verifyPhoneOtp(phone, otp);
+    res.status(200).json({
+      success: true,
+      message: 'Phone number verified successfully.',
     });
   });
 }

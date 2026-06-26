@@ -22,5 +22,37 @@ export const authApi = {
     const response = await http.post<ApiResponse<void>>('/auth/logout');
     return response.data;
   },
+
+  async verifyEmail(token: string): Promise<ApiResponse<void>> {
+    const response = await http.get<ApiResponse<void>>(`/auth/verify-email?token=${token}`);
+    return response.data;
+  },
+
+  async resendVerification(email: string): Promise<ApiResponse<void>> {
+    const response = await http.post<ApiResponse<void>>('/auth/resend-verification', { email });
+    return response.data;
+  },
+
+  async forgotPassword(email: string): Promise<ApiResponse<void>> {
+    const response = await http.post<ApiResponse<void>>('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  async resetPassword(payload: { token: string; passwordHash: string }): Promise<ApiResponse<void>> {
+    // Note: backend expects { token, password }
+    const response = await http.post<ApiResponse<void>>('/auth/reset-password', {
+      token: payload.token,
+      password: payload.passwordHash,
+    });
+    return response.data;
+  },
+
+  async changePassword(payload: { oldPass: string; newPass: string }): Promise<ApiResponse<void>> {
+    const response = await http.post<ApiResponse<void>>('/auth/change-password', {
+      oldPassword: payload.oldPass,
+      newPassword: payload.newPass,
+    });
+    return response.data;
+  },
 };
 export default authApi;

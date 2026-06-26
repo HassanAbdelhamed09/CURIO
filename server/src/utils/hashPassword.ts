@@ -1,16 +1,21 @@
-/**
- * Password hashing utility functions.
- * In production, these will use 'bcryptjs' or 'bcrypt' to hash and compare passwords.
- */
+import bcrypt from 'bcryptjs';
 
+/**
+ * Hashes a plain text password using bcrypt.
+ * @param password Plain text password
+ * @returns The cryptographically hashed password
+ */
 export const hashPassword = async (password: string): Promise<string> => {
-  // TODO: Install bcrypt / bcryptjs and replace with:
-  // return await bcrypt.hash(password, 12);
-  return `hashed_placeholder_${password}`;
+  const salt = await bcrypt.genSalt(12);
+  return await bcrypt.hash(password, salt);
 };
 
+/**
+ * Compares a plain text password with a stored hash.
+ * @param password Plain text password
+ * @param hash Stored password hash
+ * @returns True if they match, false otherwise
+ */
 export const comparePassword = async (password: string, hash: string): Promise<boolean> => {
-  // TODO: Install bcrypt / bcryptjs and replace with:
-  // return await bcrypt.compare(password, hash);
-  return `hashed_placeholder_${password}` === hash;
+  return await bcrypt.compare(password, hash);
 };

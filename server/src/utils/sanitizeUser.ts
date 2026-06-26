@@ -1,5 +1,5 @@
-import { IUser } from '../modules/users/user.model';
-import { User } from '../types/auth.types';
+import { IUser } from '../modules/users/user.model.js';
+import { User } from '../types/auth.types.js';
 
 export const sanitizeUser = (user: IUser): User => {
   return {

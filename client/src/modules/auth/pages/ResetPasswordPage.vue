@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import AuthCard from '../components/AuthCard.vue';
 import BaseInput from '../../../components/ui/BaseInput.vue';
 import BaseButton from '../../../components/ui/BaseButton.vue';
 import BaseAlert from '../../../components/ui/BaseAlert.vue';
+import { authApi } from '../../../api/auth.api.js';
 
 const password = ref('');
 const confirmPassword = ref('');
@@ -13,7 +14,19 @@ const confirmError = ref('');
 const loading = ref(false);
 const globalError = ref('');
 const success = ref(false);
+const token = ref('');
+
 const router = useRouter();
+const route = useRoute();
+
+onMounted(() => {
+  const t = route.query.token as string;
+  if (!t) {
+    globalError.value = 'Security token is missing or invalid. Please request a new recovery link.';
+  } else {
+    token.value = t;
+  }
+});
 
 const validateForm = () => {
   let isValid = true;
@@ -41,20 +54,35 @@ const validateForm = () => {
   return isValid;
 };
 
-const handleReset = () => {
+const handleReset = async () => {
+  if (!token.value) {
+    globalError.value = 'Cannot reset password without a valid token.';
+    return;
+  }
+
   if (!validateForm()) return;
 
   globalError.value = '';
   loading.value = true;
 
-  // Simulate resetting password
-  setTimeout(() => {
+  try {
+    await authApi.resetPassword({
+      token: token.value,
+      passwordHash: password.value,
+    });
     loading.value = false;
     success.value = true;
+    globalError.value = '';
+    
+    // Redirect to login after brief delay
     setTimeout(() => {
       router.push({ name: 'login' });
     }, 2500);
-  }, 1500);
+  } catch (err: any) {
+    loading.value = false;
+    success.value = false;
+    globalError.value = err.response?.data?.message || 'Failed to update password. Link may be expired.';
+  }
 };
 </script>
 
@@ -74,7 +102,7 @@ const handleReset = () => {
         message="Password updated successfully! Redirecting you to login..."
       />
 
-      <form v-if="!success" @submit.prevent="handleReset" novalidate class="form-layout">
+      <form v-if="!success && token" @submit.prevent="handleReset" novalidate class="form-layout">
         <!-- New Password Field -->
         <BaseInput
           id="new-password"

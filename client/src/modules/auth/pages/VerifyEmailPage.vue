@@ -5,11 +5,18 @@ import AuthCard from '../components/AuthCard.vue';
 import BaseLoader from '../../../components/ui/BaseLoader.vue';
 import BaseAlert from '../../../components/ui/BaseAlert.vue';
 import BaseButton from '../../../components/ui/BaseButton.vue';
+import BaseInput from '../../../components/ui/BaseInput.vue';
+import { authApi } from '../../../api/auth.api.js';
+import { useAuthStore } from '../../../stores/auth.store.js';
 
 const route = useRoute();
+const authStore = useAuthStore();
+
 const verifying = ref(true);
 const success = ref(false);
 const message = ref('');
+const email = ref('');
+const emailError = ref('');
 const resending = ref(false);
 const resendSuccess = ref(false);
 
@@ -22,26 +29,42 @@ const verifyToken = async () => {
     return;
   }
 
-  // Simulate verification call
-  setTimeout(() => {
+  try {
+    const response = await authApi.verifyEmail(token);
     verifying.value = false;
     success.value = true;
-    message.value = 'Your email address has been successfully verified! You can now access all premium features.';
-  }, 2000);
+    message.value = response.message || 'Your email address has been successfully verified! You can now access all premium features.';
+  } catch (err: any) {
+    verifying.value = false;
+    success.value = false;
+    message.value = err.response?.data?.message || 'Verification token is invalid or has expired.';
+  }
 };
 
-const handleResend = () => {
+const handleResend = async () => {
+  if (!email.value) {
+    emailError.value = 'Please enter your email address to resend.';
+    return;
+  }
+  
+  emailError.value = '';
   resending.value = true;
   resendSuccess.value = false;
   
-  // Simulate resend dispatch
-  setTimeout(() => {
+  try {
+    await authApi.resendVerification(email.value);
     resending.value = false;
     resendSuccess.value = true;
-  }, 1500);
+  } catch (err: any) {
+    resending.value = false;
+    emailError.value = err.response?.data?.message || 'Failed to resend verification email.';
+  }
 };
 
 onMounted(() => {
+  if (authStore.user?.email) {
+    email.value = authStore.user.email;
+  }
   verifyToken();
 });
 </script>
@@ -83,8 +106,17 @@ onMounted(() => {
           />
           
           <p class="error-explanation">
-            Verification links expire after 24 hours. Click below to receive a new secure verification link.
+            Verification links expire after 24 hours. Enter your email below to receive a new secure verification link.
           </p>
+
+          <BaseInput
+            id="resend-email"
+            v-model="email"
+            type="email"
+            placeholder="name@example.com"
+            :error="emailError"
+            required
+          />
           
           <BaseButton
             variant="secondary"

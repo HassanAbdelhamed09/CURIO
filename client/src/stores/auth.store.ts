@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { User, LoginPayload, RegisterPayload } from '../types/auth.types.js';
 import { authApi } from '../api/auth.api.js';
+import { userApi } from '../api/user.api.js';
 import { tokenStorage } from '../utils/tokenStorage.js';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -58,6 +59,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  const initAuth = async () => {
+    const token = tokenStorage.getAccessToken();
+    if (!token) return;
+    loading.value = true;
+    try {
+      const response = await userApi.getMe();
+      if (response.success && response.data) {
+        user.value = response.data;
+      }
+    } catch (err) {
+      console.error('Session restoration failed:', err);
+      tokenStorage.clearTokens();
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     user,
     loading,
@@ -66,6 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    initAuth,
   };
 });
 export default useAuthStore;
