@@ -1,8 +1,9 @@
+import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
 
 /**
  * Email Service.
- * Dispatches verification links and password recovery steps.
+ * Dispatches verification links and password recovery steps via SMTP.
  */
 export const sendEmail = async (to: string, subject: string, html: string): Promise<void> => {
   // Check if SMTP is configured (i.e. not placeholder value)
@@ -14,10 +15,23 @@ export const sendEmail = async (to: string, subject: string, html: string): Prom
 
   if (isSmtpConfigured) {
     try {
-      // If they install nodemailer, this would be:
-      // const nodemailer = await import('nodemailer');
-      // const transporter = nodemailer.createTransport({ ... });
-      // await transporter.sendMail({ ... });
+      const transporter = nodemailer.createTransport({
+        host: env.EMAIL_HOST,
+        port: env.EMAIL_PORT,
+        secure: env.EMAIL_PORT === 465, // Use SSL for port 465
+        auth: {
+          user: env.EMAIL_USER,
+          pass: env.EMAIL_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"${env.EMAIL_FROM.split('@')[0]}" <${env.EMAIL_FROM}>`,
+        to,
+        subject,
+        html,
+      });
+
       console.log(`[SMTP EMAIL] Dispatched email successfully to: ${to}`);
     } catch (err) {
       console.error('[SMTP EMAIL ERROR] Failed sending via SMTP, falling back to console:', err);

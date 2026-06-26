@@ -80,9 +80,6 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-// Indexes
-userSchema.index({ email: 1 });
-userSchema.index({ phone: 1 });
-userSchema.index({ googleId: 1 });
+
 
 export const User = model<IUser>('User', userSchema);

@@ -91,13 +91,7 @@ withDefaults(defineProps<Props>(), {
   border-width: 2px;
 }
 
-/* Custom dark mode adjustment for the spinner */
-@media (prefers-color-scheme: dark) {
-  .loader-spinner {
-    border-color: rgba(243, 244, 246, 0.1);
-    border-top-color: var(--color-accent);
-  }
-}
+
 
 .loader-text {
   font-family: var(--font-sans);

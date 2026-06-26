@@ -151,25 +151,7 @@ const alertIcon = computed(() => {
   color: #991b1b;
 }
 
-/* Dark theme overrides for alert readability */
-@media (prefers-color-scheme: dark) {
-  .alert-info {
-    color: #93c5fd;
-    background-color: rgba(59, 130, 246, 0.12);
-  }
-  .alert-success {
-    color: #6ee7b7;
-    background-color: rgba(16, 185, 129, 0.12);
-  }
-  .alert-warning {
-    color: #fcd34d;
-    background-color: rgba(245, 158, 11, 0.12);
-  }
-  .alert-error {
-    color: #fca5a5;
-    background-color: rgba(239, 68, 68, 0.12);
-  }
-}
+
 
 .close-button {
   background: none;

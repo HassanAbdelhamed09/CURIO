@@ -45,7 +45,7 @@ export const verifyGoogleCredential = async (credential: string): Promise<Google
       throw new ApiError(401, 'Google token verification failed.', 'INVALID_CREDENTIALS');
     }
 
-    const payload = await response.json();
+    const payload = await response.json() as any;
 
     // Verify audience matches our Client ID to prevent token spoofing/reuse attacks
     if (payload.aud !== env.GOOGLE_CLIENT_ID) {
