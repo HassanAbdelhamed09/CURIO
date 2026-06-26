@@ -8,7 +8,7 @@ import { registerSchema, loginSchema, resetPasswordSchema } from './auth.validat
 const router = Router();
 
 // Apply strict rate limiting to sensitive routes
-const authRateLimit = rateLimiter(5, 15); // 5 requests per 15 mins
+const authRateLimit = rateLimiter(100, 15); // 100 requests per 15 mins
 
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', authRateLimit, validate(loginSchema), authController.login);
