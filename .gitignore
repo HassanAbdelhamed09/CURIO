@@ -36,3 +36,9 @@ out/
 *.njsproj
 *.sln
 *.sw?
+
+# Agent Customizations & Skills
+.agents/
+**/.agents/
+skills-lock.json
+**/skills-lock.json
