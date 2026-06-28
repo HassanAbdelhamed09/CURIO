@@ -19,6 +19,7 @@ out/
 **/out/
 
 # Local env files
+env.ts
 .env
 .env.local
 .env.*.local
