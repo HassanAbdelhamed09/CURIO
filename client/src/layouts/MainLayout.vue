@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth.store.js';
 import { useToastStore } from '../stores/toast.store.js';
+import { useCartStore } from '../stores/cart.store.js';
 import { useRouter, useRoute } from 'vue-router';
 import { Lock, Sparkles } from '@lucide/vue';
 import { authApi } from '../api/auth.api.js';
+
+const cartStore = useCartStore();
 
 const authStore = useAuthStore();
 const toastStore = useToastStore();
@@ -37,6 +40,10 @@ onUnmounted(() => {
   stopCooldown();
 });
 
+onMounted(() => {
+  cartStore.fetchCart();
+});
+
 const handleResendVerification = async () => {
   if (!authStore.user?.email || resending.value || resendCooldown.value > 0) return;
   
@@ -61,7 +68,8 @@ interface NavItem {
 
 const navItems = computed<NavItem[]>(() => {
   const items = [
-    { label: 'Catalog', to: '/', matchNames: ['home'] }
+    { label: 'Catalog', to: '/', matchNames: ['home'] },
+    { label: 'Cart', to: '/cart', matchNames: ['cart', 'checkout'] }
   ];
   
   if (authStore.isAuthenticated) {
@@ -131,6 +139,9 @@ const handleLogout = async () => {
             :aria-current="isNavItemActive(item) ? 'page' : undefined"
           >
             {{ item.label }}
+            <span v-if="item.label === 'Cart' && cartStore.cartCount > 0" class="nav-cart-badge">
+              {{ cartStore.cartCount }}
+            </span>
           </router-link>
           
           <template v-if="authStore.isAuthenticated">
@@ -274,6 +285,9 @@ const handleLogout = async () => {
   border-radius: 9999px;
   transition: all var(--duration-base) var(--ease-spring);
   border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .nav-item:hover {
@@ -285,6 +299,28 @@ const handleLogout = async () => {
 .nav-item--active {
   background-color: var(--color-primary) !important;
   color: var(--color-surface) !important;
+}
+
+.nav-cart-badge {
+  background-color: var(--color-accent);
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: all var(--duration-base) var(--ease-spring);
+}
+
+.nav-item--active .nav-cart-badge {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
 }
 
 .btn-logout {

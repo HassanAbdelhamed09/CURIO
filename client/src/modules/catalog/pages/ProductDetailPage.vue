@@ -5,6 +5,7 @@ import { useProductStore } from '../../../stores/product.store.js';
 import { useAuthStore } from '../../../stores/auth.store.js';
 import { useToastStore } from '../../../stores/toast.store.js';
 import { useWishlistStore } from '../../../stores/wishlist.store.js';
+import { useCartStore } from '../../../stores/cart.store.js';
 import { reviewApi } from '../../../api/product.api.js';
 import type { Review } from '../../../types/product.types.js';
 import StarRating from '../components/StarRating.vue';
@@ -18,11 +19,13 @@ const productStore = useProductStore();
 const authStore = useAuthStore();
 const toastStore = useToastStore();
 const wishlistStore = useWishlistStore();
+const cartStore = useCartStore();
 
 const reviews = ref<Review[]>([]);
 const reviewsLoading = ref(false);
 const newRating = ref(5);
 const newComment = ref('');
+const quantity = ref(1);
 const submitting = ref(false);
 const activeImageIdx = ref(0);
 
@@ -83,6 +86,16 @@ const submitReview = async () => {
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+const handleAddToCart = async () => {
+  if (!product.value) return;
+  try {
+    await cartStore.addToCart(product.value._id, quantity.value);
+    quantity.value = 1; // Reset quantity to 1
+  } catch (err) {
+    // Already handled by toast in store
+  }
+};
 </script>
 
 <template>
@@ -154,6 +167,48 @@ const formatDate = (dateStr: string) =>
             <span :class="['stock-badge', isInStock ? 'stock-badge--in' : 'stock-badge--out']">
               {{ isInStock ? `${product.stock} in stock` : 'Out of Stock' }}
             </span>
+          </div>
+
+          <!-- Cart Widget -->
+          <div class="cart-widget-container" v-if="isInStock">
+            <div class="qty-selector">
+              <label for="acquire-qty" class="qty-label">Quantity</label>
+              <div class="qty-actions">
+                <button
+                  type="button"
+                  class="qty-btn"
+                  :disabled="quantity <= 1 || cartStore.loading"
+                  @click="quantity--"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  id="acquire-qty"
+                  v-model.number="quantity"
+                  min="1"
+                  :max="product.stock"
+                  class="qty-input"
+                  readonly
+                />
+                <button
+                  type="button"
+                  class="qty-btn"
+                  :disabled="quantity >= product.stock || cartStore.loading"
+                  @click="quantity++"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-add-to-cart"
+              :disabled="cartStore.loading"
+              @click="handleAddToCart"
+            >
+              {{ cartStore.loading ? 'Adding to Registry...' : 'Add to Cart Registry' }}
+            </button>
           </div>
 
           <div class="seller-info">
@@ -677,5 +732,106 @@ const formatDate = (dateStr: string) =>
   color: var(--color-text);
   line-height: 1.6;
   margin: 0;
+}
+
+/* Cart Widget Styles */
+.cart-widget-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: var(--color-bg-alt);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.qty-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qty-label {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.qty-actions {
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.qty-btn {
+  background: none;
+  border: none;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.qty-btn:hover:not(:disabled) {
+  background-color: var(--color-bg-alt);
+}
+
+.qty-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.qty-input {
+  border: none;
+  width: 48px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: transparent;
+  pointer-events: none;
+  -moz-appearance: textfield;
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.btn-add-to-cart {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-spring);
+  box-shadow: var(--shadow-button);
+}
+
+.btn-add-to-cart:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.btn-add-to-cart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

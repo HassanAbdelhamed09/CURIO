@@ -13,12 +13,16 @@ export const http: AxiosInstance = axios.create({
   withCredentials: true, // Send HTTP-only cookies (e.g. refresh tokens) automatically
 });
 
-// Request Interceptor: Inject Access Token
+// Request Interceptor: Inject Access Token and Guest Session ID
 http.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenStorage.getAccessToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const guestId = localStorage.getItem('guestId');
+    if (guestId && config.headers) {
+      config.headers['x-guest-id'] = guestId;
     }
     return config;
   },
@@ -41,7 +45,13 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 http.interceptors.response.use(
-  (response: any) => response,
+  (response: any) => {
+    const serverGuestId = response.headers['x-guest-id'];
+    if (serverGuestId) {
+      localStorage.setItem('guestId', serverGuestId);
+    }
+    return response;
+  },
   async (error: any) => {
     const originalRequest = error.config;
     const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
