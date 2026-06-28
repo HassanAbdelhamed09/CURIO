@@ -1,0 +1,343 @@
+{
+  "info": {
+    "_postman_id": "7f8b9e6a-1234-5678-abcd-9e8d7c6b5a4f",
+    "name": "Cart & Checkout APIs - CURIO",
+    "description": "Postman Collection for CURIO Cart and Checkout Module APIs. Includes guest and authenticated cart operations, promo codes, checkouts, and order details retrieval.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "description": "Session identifier for guest users",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart"
+              ]
+            },
+            "description": "Retrieves the user's cart or guest cart, along with the computed pricing breakdown (subtotal, discount, shipping, tax, total)."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items"
+              ]
+            },
+            "description": "Adds an item to the shopping cart. If the item already exists, updates its quantity. Validates product status and stock availability."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/items/{{itemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items",
+                "{{itemId}}"
+              ]
+            },
+            "description": "Updates the quantity of a specific item in the cart. If the quantity is set to 0, the item is removed."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Item from Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/items/{{itemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "items",
+                "{{itemId}}"
+              ]
+            },
+            "description": "Removes a specific item from the cart registry entirely."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart"
+              ]
+            },
+            "description": "Clears all items in the shopping cart and resets any applied promo codes."
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Promo Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE10\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/promo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "promo"
+              ]
+            },
+            "description": "Applies a promo code (percentage-based or fixed discount) to the cart. Checks for activation, expiration, and status."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Promo Code",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart/promo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cart",
+                "promo"
+              ]
+            },
+            "description": "Removes the applied promo code from the cart registry and recalculates totals."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Checkout & Orders",
+      "item": [
+        {
+          "name": "Place Order / Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Moamen Alaa Soltan\",\n  \"email\": \"moamen@example.com\",\n  \"phone\": \"+20123456789\",\n  \"address\": \"123 Atelier Street\",\n  \"city\": \"Cairo\",\n  \"country\": \"Egypt\",\n  \"postalCode\": \"11511\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout"
+              ]
+            },
+            "description": "Submits guest checkout fields, validates stocks, takes a snapshot of items, deducts inventory, clears the cart, and creates a pending Order."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "description": "Retrieves the details of a placed order. Secures access checks by comparing requesting user/guest tokens with the order registry."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "guestId",
+      "value": "guest-session-uuid-example",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "product-id-here",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "cart-item-id-here",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "order-id-here",
+      "type": "string"
+    }
+  ]
+}

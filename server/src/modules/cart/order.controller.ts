@@ -1,0 +1,68 @@
+import { Request, Response } from 'express';
+import { asyncHandler } from '../../utils/asyncHandler.js';
+import { orderService } from './order.service.js';
+import { ApiError } from '../../utils/ApiError.js';
+
+export class OrderController {
+  /**
+   * POST /api/checkout
+   */
+  public checkout = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.cartOwner?.userId;
+    const guestId = req.cartOwner?.guestId;
+    const { fullName, email, phone, address, city, country, postalCode } = req.body;
+
+    // Validate checkout fields
+    const errors: Record<string, string[]> = {};
+    if (!fullName) errors.fullName = ['Full name is required.'];
+    if (!email) {
+      errors.email = ['Email address is required.'];
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errors.email = ['Please provide a valid email address.'];
+      }
+    }
+    if (!phone) errors.phone = ['Phone number is required.'];
+    if (!address) errors.address = ['Street address is required.'];
+    if (!city) errors.city = ['City is required.'];
+    if (!country) errors.country = ['Country is required.'];
+    if (!postalCode) errors.postalCode = ['Postal code is required.'];
+
+    if (Object.keys(errors).length > 0) {
+      throw new ApiError(400, 'Checkout validation failed.', 'VALIDATION_ERROR', errors);
+    }
+
+    const shippingAddress = { fullName, email, phone, address, city, country, postalCode };
+
+    const order = await orderService.checkout(shippingAddress, userId, guestId);
+
+    res.status(201).json({
+      success: true,
+      message: 'Order created successfully.',
+      data: order,
+    });
+  });
+
+  /**
+   * GET /api/orders/:id
+   */
+  public getOrderById = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const requestingUser = req.user
+      ? { _id: req.user._id.toString(), role: req.user.role }
+      : undefined;
+    const requestingGuestId = req.headers['x-guest-id'] as string || req.cookies?.guestId;
+
+    const order = await orderService.getOrderById(id, requestingUser, requestingGuestId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Order retrieved successfully.',
+      data: order,
+    });
+  });
+}
+
+export const orderController = new OrderController();
+export default orderController;

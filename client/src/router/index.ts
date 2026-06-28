@@ -55,6 +55,21 @@ const routes: RouteRecordRaw[] = [
         beforeEnter: roleGuard(['admin']),
       },
       {
+        path: 'cart',
+        name: 'cart',
+        component: () => import('../modules/cart/pages/CartPage.vue'),
+      },
+      {
+        path: 'checkout',
+        name: 'checkout',
+        component: () => import('../modules/cart/pages/CheckoutPage.vue'),
+      },
+      {
+        path: 'orders/:id',
+        name: 'order-success',
+        component: () => import('../modules/cart/pages/OrderSuccessPage.vue'),
+      },
+      {
         path: 'forbidden',
         name: 'forbidden',
         component: { template: '<div>Access Forbidden - 403</div>' } as any,
