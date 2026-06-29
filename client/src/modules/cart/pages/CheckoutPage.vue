@@ -26,6 +26,7 @@ const form = ref({
 
 const errors = ref<Record<string, string>>({});
 const submitError = ref<string | null>(null);
+const paymentMethod = ref<'card' | 'cash'>('card');
 
 onMounted(async () => {
   if (route.query.cancelled === 'true') {
@@ -83,15 +84,18 @@ const handlePlaceOrder = async () => {
   }
 
   try {
-    const result = await cartStore.checkout({
-      fullName: form.value.fullName.trim(),
-      email: form.value.email.trim(),
-      phone: form.value.phone.trim(),
-      address: form.value.address.trim(),
-      city: form.value.city.trim(),
-      country: form.value.country.trim(),
-      postalCode: form.value.postalCode.trim(),
-    });
+    const result = await cartStore.checkout(
+      {
+        fullName: form.value.fullName.trim(),
+        email: form.value.email.trim(),
+        phone: form.value.phone.trim(),
+        address: form.value.address.trim(),
+        city: form.value.city.trim(),
+        country: form.value.country.trim(),
+        postalCode: form.value.postalCode.trim(),
+      },
+      paymentMethod.value
+    );
 
     if (result.checkoutUrl) {
       window.location.href = result.checkoutUrl;
@@ -219,13 +223,61 @@ const handlePlaceOrder = async () => {
             </div>
           </div>
 
-          <!-- Sandbox Payment Notice -->
-          <div class="payment-notice-card">
+          <!-- Payment Method Toggle -->
+          <div class="payment-method-section">
+            <h3 class="section-subtitle">Payment Method</h3>
+            <div class="payment-toggle-grid">
+              <label :class="['payment-toggle-label', { active: paymentMethod === 'card' }]">
+                <input
+                  v-model="paymentMethod"
+                  type="radio"
+                  value="card"
+                  class="hidden-radio"
+                />
+                <div class="toggle-content">
+                  <CreditCard class="toggle-icon" />
+                  <div class="toggle-text">
+                    <span class="toggle-title">Pay with Visa / Card</span>
+                    <span class="toggle-desc">Online payment securely via Stripe</span>
+                  </div>
+                </div>
+              </label>
+
+              <label :class="['payment-toggle-label', { active: paymentMethod === 'cash' }]">
+                <input
+                  v-model="paymentMethod"
+                  type="radio"
+                  value="cash"
+                  class="hidden-radio"
+                />
+                <div class="toggle-content">
+                  <Sparkles class="toggle-icon" />
+                  <div class="toggle-text">
+                    <span class="toggle-title">Cash on Delivery</span>
+                    <span class="toggle-desc">Pay in cash when order arrives</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Payment Notice -->
+          <div v-if="paymentMethod === 'card'" class="payment-notice-card">
             <CreditCard class="payment-icon" />
             <div class="payment-notice-details">
               <span class="payment-notice-title">Secure Payment Gateway</span>
               <span class="payment-notice-desc">
                 All transactions are encrypted and processed securely via Stripe. Credit card details are never stored.
+              </span>
+            </div>
+          </div>
+
+          <div v-else class="payment-notice-card payment-notice-card--cash">
+            <Sparkles class="payment-icon text-accent" />
+            <div class="payment-notice-details">
+              <span class="payment-notice-title">Cash on Arrival</span>
+              <span class="payment-notice-desc">
+                Please make sure you have the exact cash amount ready upon delivery. The shipping carrier will collect payment at your doorstep.
               </span>
             </div>
           </div>
@@ -615,5 +667,98 @@ const handlePlaceOrder = async () => {
 .trust-badge-icon {
   width: 12px;
   height: 12px;
+}
+
+/* Payment method toggle */
+.payment-method-section {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.section-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 16px 0;
+}
+
+.payment-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.payment-toggle-label {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  background-color: var(--color-surface);
+  transition: all var(--duration-fast) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-toggle-label:hover {
+  border-color: var(--color-accent);
+  background-color: var(--color-bg-alt);
+}
+
+.payment-toggle-label.active {
+  border-color: var(--color-accent);
+  background-color: var(--color-bg-alt);
+  box-shadow: 0 0 0 2px rgba(163, 170, 184, 0.15);
+}
+
+.hidden-radio {
+  display: none;
+}
+
+.toggle-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-muted);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.payment-toggle-label.active .toggle-icon {
+  color: var(--color-accent);
+}
+
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-title {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.toggle-desc {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  line-height: 1.3;
+}
+
+.payment-notice-card--cash {
+  background-color: rgba(99, 102, 241, 0.05) !important;
+}
+
+.text-accent {
+  color: var(--color-accent);
 }
 </style>

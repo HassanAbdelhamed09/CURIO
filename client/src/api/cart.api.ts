@@ -69,6 +69,7 @@ export interface OrderData {
   totals: CartTotals;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus?: 'pending' | 'paid' | 'failed';
+  paymentMethod?: 'card' | 'cash';
   createdAt: string;
   updatedAt: string;
 }
@@ -130,8 +131,14 @@ export const cartApi = {
     return response.data;
   },
 
-  checkout: async (shippingAddress: ShippingAddress): Promise<CheckoutApiResponse> => {
-    const response = await http.post('/checkout', shippingAddress);
+  checkout: async (payload: {
+    shippingAddress: ShippingAddress;
+    paymentMethod?: 'card' | 'cash';
+  }): Promise<CheckoutApiResponse> => {
+    const response = await http.post('/checkout', {
+      ...payload.shippingAddress,
+      paymentMethod: payload.paymentMethod,
+    });
     return response.data;
   },
 

@@ -146,11 +146,14 @@ export const useCartStore = defineStore('cart', () => {
     }
   };
 
-  const checkout = async (shippingAddress: ShippingAddress): Promise<{ order: OrderData; checkoutUrl?: string }> => {
+  const checkout = async (
+    shippingAddress: ShippingAddress,
+    paymentMethod: 'card' | 'cash' = 'card'
+  ): Promise<{ order: OrderData; checkoutUrl?: string }> => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await cartApi.checkout(shippingAddress);
+      const response = await cartApi.checkout({ shippingAddress, paymentMethod });
       if (response.success && response.data) {
         if (!response.data.checkoutUrl) {
           // Direct sandbox checkout, clear local cart state

@@ -83,11 +83,33 @@ const steps = computed(() => {
   if (!order.value) return [];
   const status = order.value.status;
   const isPaid = order.value.totals.total === 0 || order.value.paymentStatus === 'paid';
+  const isCash = order.value.paymentMethod === 'cash';
   
   if (status === 'cancelled') {
     return [
       { label: 'Order Placed', completed: true, active: true },
       { label: 'Cancelled', completed: false, active: true, error: true }
+    ];
+  }
+
+  if (isCash) {
+    return [
+      { label: 'Placed', completed: true, active: true },
+      { 
+        label: 'Processing', 
+        completed: ['processing', 'shipped', 'delivered'].includes(status), 
+        active: ['processing', 'shipped', 'delivered'].includes(status) 
+      },
+      { 
+        label: 'Shipped', 
+        completed: ['shipped', 'delivered'].includes(status), 
+        active: ['shipped', 'delivered'].includes(status) 
+      },
+      { 
+        label: 'Delivered & Paid', 
+        completed: status === 'delivered', 
+        active: status === 'delivered' 
+      }
     ];
   }
 
@@ -244,6 +266,7 @@ const isAdminOrSeller = computed(() => authStore.isAuthenticated && (authStore.u
             <div class="status-controls-form">
               <select v-model="selectedStatus" class="status-select" :disabled="statusUpdating">
                 <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
                 <option value="processing">Processing (Paid)</option>
                 <option value="shipped">Shipped</option>
                 <option value="delivered">Delivered</option>
