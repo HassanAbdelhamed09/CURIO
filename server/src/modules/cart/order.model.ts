@@ -33,9 +33,10 @@ export interface IOrder extends Document {
   shippingAddress: IShippingAddress;
   promoCode?: string;
   totals: IOrderTotals;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   stripeSessionId?: string;
   paymentStatus: 'pending' | 'paid' | 'failed';
+  paymentMethod: 'card' | 'cash';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -108,7 +109,7 @@ const orderSchema = new Schema<IOrder>(
     },
     status: {
       type: String,
-      enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+      enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
       default: 'pending',
     },
     stripeSessionId: {
@@ -118,6 +119,11 @@ const orderSchema = new Schema<IOrder>(
       type: String,
       enum: ['pending', 'paid', 'failed'],
       default: 'pending',
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['card', 'cash'],
+      default: 'card',
     },
   },
   {

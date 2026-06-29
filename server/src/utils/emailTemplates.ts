@@ -129,6 +129,7 @@ export const getOrderConfirmationTemplate = (order: IOrder, clientUrl: string): 
 export const getOrderStatusUpdateTemplate = (order: IOrder, clientUrl: string): string => {
   const statusColors = {
     pending: '#6b7280',
+    confirmed: '#6366f1',
     processing: '#3b82f6',
     shipped: '#f59e0b',
     delivered: '#10b981',
