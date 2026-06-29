@@ -47,6 +47,20 @@ class AdminController {
       data,
     });
   });
+
+  /**
+   * GET /api/admin/sellers
+   * Returns a paginated, aggregated list of sellers.
+   */
+  public getSellers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await adminService.getSellers(req.query);
+
+    res.status(200).json({
+      success: true,
+      message: 'Sellers retrieved successfully.',
+      data,
+    });
+  });
 }
 
 export const adminController = new AdminController();

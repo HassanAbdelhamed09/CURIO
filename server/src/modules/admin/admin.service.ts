@@ -271,6 +271,66 @@ class AdminService {
       updatedAt: user.updatedAt,
     };
   }
+
+  /**
+   * Fetch a paginated list of sellers with their aggregated products count.
+   */
+  public async getSellers(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const { search } = query;
+
+    const match: any = { role: 'seller', status: { $ne: 'deleted' } };
+
+    if (search) {
+      match.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const sellersPipeline = [
+      { $match: match },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: 'seller',
+          as: 'sellerProducts',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          fullName: 1,
+          email: 1,
+          phone: 1,
+          status: 1,
+          createdAt: 1,
+          productsCount: { $size: '$sellerProducts' },
+        },
+      },
+      { $sort: { createdAt: -1 as const } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+    ];
+
+    const [sellers, total] = await Promise.all([
+      User.aggregate(sellersPipeline),
+      User.countDocuments(match),
+    ]);
+
+    return {
+      sellers,
+      total,
+      pages: Math.ceil(total / limit),
+      page,
+    };
+  }
 }
 
 export const adminService = new AdminService();
