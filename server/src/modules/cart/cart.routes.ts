@@ -16,6 +16,7 @@ orderRouter.use(resolveCartOwner);
 
 // Cart Routes
 cartRouter.get('/', cartController.getCart);
+cartRouter.get('/active-promos', cartController.getActivePromos);
 cartRouter.post('/items', cartController.addItem);
 cartRouter.patch('/items/:itemId', cartController.updateItem);
 cartRouter.delete('/items/:itemId', cartController.removeItem);

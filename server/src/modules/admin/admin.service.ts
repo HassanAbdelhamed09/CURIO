@@ -3,6 +3,7 @@ import { Product } from '../products/product.model.js';
 import { Order } from '../cart/order.model.js';
 import { Category } from '../products/category.model.js';
 import { Review } from '../products/review.model.js';
+import { PromoCode } from '../cart/promo.model.js';
 import { productService } from '../products/product.service.js';
 import { ApiError } from '../../utils/ApiError.js';
 import type {
@@ -482,6 +483,116 @@ class AdminService {
     const reviews = await Review.find({ productId: review.productId, status: { $ne: 'hidden' } });
     const ratings = reviews.map((r) => r.rating);
     await productService.recalculateRating(parentProductId, ratings);
+  }
+
+  /**
+   * Fetch promo codes with search and pagination.
+   */
+  public async getCoupons(query: { page?: number; limit?: number; search?: string }) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const { search } = query;
+
+    const filter: any = {};
+    if (search) {
+      filter.code = { $regex: search, $options: 'i' };
+    }
+
+    const [coupons, total] = await Promise.all([
+      PromoCode.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      PromoCode.countDocuments(filter),
+    ]);
+
+    return {
+      coupons,
+      total,
+      pages: Math.ceil(total / limit),
+      page,
+    };
+  }
+
+  /**
+   * Create a new promo code.
+   */
+  public async createCoupon(payload: {
+    code: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+    isActive?: boolean;
+    usageLimit?: number;
+    expirationDate?: string | Date;
+  }) {
+    const existing = await PromoCode.findOne({ code: payload.code.toUpperCase().trim() });
+    if (existing) {
+      throw new ApiError(400, 'Coupon code already exists.', 'DUPLICATE_COUPON');
+    }
+
+    const coupon = new PromoCode({
+      ...payload,
+      code: payload.code.toUpperCase().trim(),
+    });
+    await coupon.save();
+    return coupon;
+  }
+
+  /**
+   * Update an existing promo code.
+   */
+  public async updateCoupon(
+    id: string,
+    payload: {
+      code?: string;
+      discountType?: 'percentage' | 'fixed';
+      discountValue?: number;
+      isActive?: boolean;
+      usageLimit?: number;
+      expirationDate?: string | Date;
+    }
+  ) {
+    const coupon = await PromoCode.findById(id);
+    if (!coupon) {
+      throw new ApiError(404, 'Coupon not found.', 'NOT_FOUND');
+    }
+
+    if (payload.code) {
+      const codeStr = payload.code.toUpperCase().trim();
+      if (codeStr !== coupon.code) {
+        const existing = await PromoCode.findOne({ code: codeStr });
+        if (existing) {
+          throw new ApiError(400, 'Coupon code already exists.', 'DUPLICATE_COUPON');
+        }
+        coupon.code = codeStr;
+      }
+    }
+
+    if (payload.discountType !== undefined) coupon.discountType = payload.discountType;
+    if (payload.discountValue !== undefined) coupon.discountValue = payload.discountValue;
+    if (payload.isActive !== undefined) coupon.isActive = payload.isActive;
+    
+    if (payload.usageLimit !== undefined) {
+      coupon.usageLimit = payload.usageLimit === null ? undefined : payload.usageLimit;
+    }
+
+    if (payload.expirationDate !== undefined) {
+      coupon.expirationDate = payload.expirationDate ? new Date(payload.expirationDate) : undefined;
+    }
+
+    await coupon.save();
+    return coupon;
+  }
+
+  /**
+   * Permanently delete a promo code.
+   */
+  public async deleteCoupon(id: string) {
+    const coupon = await PromoCode.findById(id);
+    if (!coupon) {
+      throw new ApiError(404, 'Coupon not found.', 'NOT_FOUND');
+    }
+    await coupon.deleteOne();
   }
 }
 

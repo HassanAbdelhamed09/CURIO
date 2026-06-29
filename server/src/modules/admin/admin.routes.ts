@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { adminController } from './admin.controller.js';
+import { bannerController } from '../banners/banner.controller.js';
 import { auth } from '../../middlewares/auth.middleware.js';
 import { role } from '../../middlewares/role.middleware.js';
 
@@ -15,5 +16,13 @@ router.get('/sellers', adminController.getSellers);
 router.get('/reviews', adminController.getReviews);
 router.patch('/reviews/:id', adminController.updateReview);
 router.delete('/reviews/:id', adminController.deleteReview);
+router.get('/coupons', adminController.getCoupons);
+router.post('/coupons', adminController.createCoupon);
+router.patch('/coupons/:id', adminController.updateCoupon);
+router.delete('/coupons/:id', adminController.deleteCoupon);
+router.get('/banners', bannerController.getAllBanners);
+router.post('/banners', bannerController.createBanner);
+router.patch('/banners/:id', bannerController.updateBanner);
+router.delete('/banners/:id', bannerController.deleteBanner);
 
 export default router;

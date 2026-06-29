@@ -4,6 +4,7 @@ import { ApiError } from '../../utils/ApiError.js';
 import { Order, IOrder, IShippingAddress } from './order.model.js';
 import { Product } from '../products/product.model.js';
 import { cartService } from './cart.service.js';
+import { PromoCode } from './promo.model.js';
 import { env } from '../../config/env.js';
 import { sendEmail } from '../../services/email.service.js';
 import { getOrderConfirmationTemplate, getOrderStatusUpdateTemplate } from '../../utils/emailTemplates.js';
@@ -98,6 +99,9 @@ export class OrderService {
 
     if (paymentMethod === 'cash') {
       await cartService.clearCart(userId, guestId);
+      if (order.promoCode) {
+        await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
+      }
       // Send confirmation email
       try {
         const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
@@ -196,6 +200,10 @@ export class OrderService {
     order.status = 'processing';
     await order.save();
 
+    if (order.promoCode) {
+      await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
+    }
+
     // Send confirmation email
     try {
       const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
@@ -251,6 +259,10 @@ export class OrderService {
 
       // Clear checkout owner's cart now that order is finalized
       await cartService.clearCart(userId, guestId);
+
+      if (order.promoCode) {
+        await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
+      }
 
       // Send confirmation email
       try {

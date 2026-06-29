@@ -99,6 +99,57 @@ class AdminController {
       message: 'Review deleted successfully.',
     });
   });
+
+  /**
+   * GET /api/admin/coupons
+   * Returns a paginated list of coupons.
+   */
+  public getCoupons = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await adminService.getCoupons(req.query);
+    res.status(200).json({
+      success: true,
+      message: 'Coupons retrieved successfully.',
+      data,
+    });
+  });
+
+  /**
+   * POST /api/admin/coupons
+   * Creates a new coupon.
+   */
+  public createCoupon = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await adminService.createCoupon(req.body);
+    res.status(201).json({
+      success: true,
+      message: 'Coupon created successfully.',
+      data,
+    });
+  });
+
+  /**
+   * PATCH /api/admin/coupons/:id
+   * Updates an existing coupon.
+   */
+  public updateCoupon = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await adminService.updateCoupon(req.params.id, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Coupon updated successfully.',
+      data,
+    });
+  });
+
+  /**
+   * DELETE /api/admin/coupons/:id
+   * Permanently deletes a coupon.
+   */
+  public deleteCoupon = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    await adminService.deleteCoupon(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: 'Coupon deleted successfully.',
+    });
+  });
 }
 
 export const adminController = new AdminController();

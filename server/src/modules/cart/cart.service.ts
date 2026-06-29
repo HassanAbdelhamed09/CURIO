@@ -200,6 +200,10 @@ export class CartService {
       throw new ApiError(400, 'Promo code has expired.', 'PROMO_EXPIRED');
     }
 
+    if (promo.usageLimit !== undefined && promo.usedCount >= promo.usageLimit) {
+      throw new ApiError(400, 'Promo code usage limit has been reached.', 'PROMO_LIMIT_REACHED');
+    }
+
     const cart = await this.getOrCreateCart(userId, guestId);
     cart.promoCode = promo.code;
     await cart.save();
@@ -241,7 +245,12 @@ export class CartService {
 
     if (cart.promoCode) {
       const promo = await PromoCode.findOne({ code: cart.promoCode });
-      if (promo && promo.isActive && (!promo.expirationDate || promo.expirationDate.getTime() >= Date.now())) {
+      if (
+        promo &&
+        promo.isActive &&
+        (!promo.expirationDate || promo.expirationDate.getTime() >= Date.now()) &&
+        (promo.usageLimit === undefined || promo.usedCount < promo.usageLimit)
+      ) {
         promoDetails = promo;
         if (promo.discountType === 'percentage') {
           discount = Math.round(subtotal * (promo.discountValue / 100) * 100) / 100;
