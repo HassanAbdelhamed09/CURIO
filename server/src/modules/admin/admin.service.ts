@@ -2,6 +2,7 @@ import { User } from '../users/user.model.js';
 import { Product } from '../products/product.model.js';
 import { Order } from '../cart/order.model.js';
 import { Category } from '../products/category.model.js';
+import { ApiError } from '../../utils/ApiError.js';
 import type {
   DashboardStats,
   DashboardCharts,
@@ -171,6 +172,104 @@ class AdminService {
     ]);
 
     return { stats, charts, recent };
+  }
+
+  /**
+   * Fetch a paginated, filterable list of user profiles.
+   */
+  public async getUsers(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+  }) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const { search, role, status } = query;
+
+    const filter: any = {};
+    
+    if (role) {
+      filter.role = role;
+    }
+    
+    if (status) {
+      filter.status = status;
+    } else {
+      // Exclude soft-deleted users by default
+      filter.status = { $ne: 'deleted' };
+    }
+
+    if (search) {
+      filter.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .select('-passwordHash')
+        .lean(),
+      User.countDocuments(filter),
+    ]);
+
+    return {
+      users,
+      total,
+      pages: Math.ceil(total / limit),
+      page,
+    };
+  }
+
+  /**
+   * Update user details, role, status, or soft-delete profile.
+   * Blocks self-modification.
+   */
+  public async updateUser(
+    targetUserId: string,
+    payload: {
+      fullName?: string;
+      email?: string;
+      phone?: string;
+      role?: 'customer' | 'seller' | 'admin';
+      status?: 'active' | 'blocked' | 'deleted';
+    },
+    requesterUserId: string
+  ) {
+    if (targetUserId === requesterUserId) {
+      if (payload.role || payload.status) {
+        throw new ApiError(400, 'Self-modification of administrative role or status is forbidden.', 'SELF_MODIFICATION_FORBIDDEN');
+      }
+    }
+
+    const user = await User.findById(targetUserId);
+    if (!user) {
+      throw new ApiError(404, 'User account not found.', 'NOT_FOUND');
+    }
+
+    // Apply updates
+    if (payload.fullName !== undefined) user.fullName = payload.fullName;
+    if (payload.email !== undefined) user.email = payload.email;
+    if (payload.phone !== undefined) user.phone = payload.phone;
+    if (payload.role !== undefined) user.role = payload.role;
+    if (payload.status !== undefined) user.status = payload.status;
+
+    await user.save();
+
+    return {
+      _id: user._id.toString(),
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      status: user.status,
+      updatedAt: user.updatedAt,
+    };
   }
 }
 

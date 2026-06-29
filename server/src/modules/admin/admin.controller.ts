@@ -16,6 +16,37 @@ class AdminController {
       data,
     });
   });
+
+  /**
+   * GET /api/admin/users
+   * Returns a paginated, filterable list of user profiles.
+   */
+  public getUsers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await adminService.getUsers(req.query);
+
+    res.status(200).json({
+      success: true,
+      message: 'Users retrieved successfully.',
+      data,
+    });
+  });
+
+  /**
+   * PATCH /api/admin/users/:id
+   * Updates user credentials, role, status, or soft-deletes account.
+   */
+  public updateUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const requesterId = req.user!._id.toString();
+
+    const data = await adminService.updateUser(id, req.body, requesterId);
+
+    res.status(200).json({
+      success: true,
+      message: 'User account updated successfully.',
+      data,
+    });
+  });
 }
 
 export const adminController = new AdminController();

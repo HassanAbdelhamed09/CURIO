@@ -61,9 +61,51 @@ export interface DashboardData {
   recent: DashboardRecent;
 }
 
+export interface UserRegistryItem {
+  _id: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  role: 'customer' | 'seller' | 'admin';
+  status: 'active' | 'blocked' | 'deleted';
+  createdAt: string;
+}
+
+export interface PaginatedUsersData {
+  users: UserRegistryItem[];
+  total: number;
+  pages: number;
+  page: number;
+}
+
 export const adminApi = {
   async fetchDashboardData(): Promise<ApiResponse<DashboardData>> {
     const response = await http.get<ApiResponse<DashboardData>>('/admin/dashboard');
+    return response.data;
+  },
+
+  async fetchUsers(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+  }): Promise<ApiResponse<PaginatedUsersData>> {
+    const response = await http.get<ApiResponse<PaginatedUsersData>>('/admin/users', { params });
+    return response.data;
+  },
+
+  async updateUser(
+    id: string,
+    payload: {
+      fullName?: string;
+      email?: string;
+      phone?: string;
+      role?: 'customer' | 'seller' | 'admin';
+      status?: 'active' | 'blocked' | 'deleted';
+    }
+  ): Promise<ApiResponse<UserRegistryItem>> {
+    const response = await http.patch<ApiResponse<UserRegistryItem>>(`/admin/users/${id}`, payload);
     return response.data;
   },
 };

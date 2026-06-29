@@ -9,5 +9,7 @@ const router = Router();
 router.use(auth, authorize('admin'));
 
 router.get('/dashboard', adminController.getDashboard);
+router.get('/users', adminController.getUsers);
+router.patch('/users/:id', adminController.updateUser);
 
 export default router;
