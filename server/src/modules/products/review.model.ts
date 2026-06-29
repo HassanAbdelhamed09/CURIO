@@ -5,6 +5,7 @@ export interface IReview extends Document {
   userId: Types.ObjectId;
   rating: number;
   comment: string;
+  status: 'active' | 'hidden';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +32,11 @@ const reviewSchema = new Schema<IReview>(
       type: String,
       required: true,
       trim: true,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'hidden'],
+      default: 'active',
     },
   },
   {

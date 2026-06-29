@@ -8,7 +8,7 @@ export class ReviewService {
    * Gets all reviews for a product, populated with user details.
    */
   public async getByProduct(productId: string): Promise<IReview[]> {
-    return Review.find({ productId: new Types.ObjectId(productId) })
+    return Review.find({ productId: new Types.ObjectId(productId), status: { $ne: 'hidden' } })
       .populate('userId', 'fullName avatarUrl')
       .sort({ createdAt: -1 });
   }
@@ -92,7 +92,7 @@ export class ReviewService {
    * Refreshes the product's average rating after any review mutation.
    */
   private async refreshRating(productId: string): Promise<void> {
-    const reviews = await Review.find({ productId: new Types.ObjectId(productId) });
+    const reviews = await Review.find({ productId: new Types.ObjectId(productId), status: { $ne: 'hidden' } });
     const ratings = reviews.map((r) => r.rating);
     await productService.recalculateRating(productId, ratings);
   }

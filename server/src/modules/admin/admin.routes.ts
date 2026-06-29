@@ -12,5 +12,8 @@ router.get('/dashboard', adminController.getDashboard);
 router.get('/users', adminController.getUsers);
 router.patch('/users/:id', adminController.updateUser);
 router.get('/sellers', adminController.getSellers);
+router.get('/reviews', adminController.getReviews);
+router.patch('/reviews/:id', adminController.updateReview);
+router.delete('/reviews/:id', adminController.deleteReview);
 
 export default router;

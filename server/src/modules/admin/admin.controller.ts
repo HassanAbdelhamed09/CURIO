@@ -61,6 +61,44 @@ class AdminController {
       data,
     });
   });
+
+  /**
+   * GET /api/admin/reviews
+   * Returns a list of all reviews.
+   */
+  public getReviews = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await adminService.getReviews(req.query);
+    res.status(200).json({
+      success: true,
+      message: 'Reviews retrieved successfully.',
+      data,
+    });
+  });
+
+  /**
+   * PATCH /api/admin/reviews/:id
+   * Updates moderation status of a review.
+   */
+  public updateReview = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await adminService.updateReview(req.params.id, req.body);
+    res.status(200).json({
+      success: true,
+      message: 'Review updated successfully.',
+      data,
+    });
+  });
+
+  /**
+   * DELETE /api/admin/reviews/:id
+   * Permanently deletes a review.
+   */
+  public deleteReview = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    await adminService.deleteReview(req.params.id);
+    res.status(200).json({
+      success: true,
+      message: 'Review deleted successfully.',
+    });
+  });
 }
 
 export const adminController = new AdminController();

@@ -2,6 +2,8 @@ import { User } from '../users/user.model.js';
 import { Product } from '../products/product.model.js';
 import { Order } from '../cart/order.model.js';
 import { Category } from '../products/category.model.js';
+import { Review } from '../products/review.model.js';
+import { productService } from '../products/product.service.js';
 import { ApiError } from '../../utils/ApiError.js';
 import type {
   DashboardStats,
@@ -330,6 +332,156 @@ class AdminService {
       pages: Math.ceil(total / limit),
       page,
     };
+  }
+
+  /**
+   * Fetch reviews with paginated search across comments, products, and reviewers.
+   */
+  public async getReviews(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const { search } = query;
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'productId',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      { $unwind: '$product' },
+    ] as any[];
+
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { comment: { $regex: search, $options: 'i' } },
+            { 'user.fullName': { $regex: search, $options: 'i' } },
+            { 'product.name': { $regex: search, $options: 'i' } },
+          ],
+        },
+      });
+    }
+
+    pipeline.push(
+      { $sort: { createdAt: -1 as const } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+      {
+        $project: {
+          _id: 1,
+          rating: 1,
+          comment: 1,
+          status: 1,
+          createdAt: 1,
+          user: { _id: '$user._id', fullName: '$user.fullName', email: '$user.email' },
+          product: { _id: '$product._id', name: '$product.name', slug: '$product.slug' },
+        },
+      }
+    );
+
+    const countPipeline = [
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'productId',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      { $unwind: '$product' },
+    ] as any[];
+
+    if (search) {
+      countPipeline.push({
+        $match: {
+          $or: [
+            { comment: { $regex: search, $options: 'i' } },
+            { 'user.fullName': { $regex: search, $options: 'i' } },
+            { 'product.name': { $regex: search, $options: 'i' } },
+          ],
+        },
+      });
+    }
+    countPipeline.push({ $count: 'total' });
+
+    const [reviews, countResult] = await Promise.all([
+      Review.aggregate(pipeline),
+      Review.aggregate(countPipeline),
+    ]);
+
+    const total = countResult[0]?.total || 0;
+
+    return {
+      reviews,
+      total,
+      pages: Math.ceil(total / limit),
+      page,
+    };
+  }
+
+  /**
+   * Toggle or update review moderation status. Recalculates product rating.
+   */
+  public async updateReview(id: string, payload: { status: 'active' | 'hidden' }) {
+    const review = await Review.findById(id);
+    if (!review) {
+      throw new ApiError(404, 'Review not found.', 'NOT_FOUND');
+    }
+
+    if (payload.status !== undefined) review.status = payload.status;
+    await review.save();
+
+    // Recalculate parent product's average rating excluding hidden reviews
+    const parentProductId = review.productId.toString();
+    const reviews = await Review.find({ productId: review.productId, status: { $ne: 'hidden' } });
+    const ratings = reviews.map((r) => r.rating);
+    await productService.recalculateRating(parentProductId, ratings);
+
+    return review;
+  }
+
+  /**
+   * Permanently delete a review from DB. Recalculates product rating.
+   */
+  public async deleteReview(id: string) {
+    const review = await Review.findById(id);
+    if (!review) {
+      throw new ApiError(404, 'Review not found.', 'NOT_FOUND');
+    }
+
+    const parentProductId = review.productId.toString();
+    await review.deleteOne();
+
+    // Recalculate parent product's average rating excluding hidden reviews
+    const reviews = await Review.find({ productId: review.productId, status: { $ne: 'hidden' } });
+    const ratings = reviews.map((r) => r.rating);
+    await productService.recalculateRating(parentProductId, ratings);
   }
 }
 
