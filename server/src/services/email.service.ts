@@ -19,10 +19,13 @@ const createTransporter = (): nodemailer.Transporter => {
     host: env.EMAIL_HOST,
     port: env.EMAIL_PORT,
     secure: env.EMAIL_PORT === 465,
-    pool: true,             // Enable connection pooling
+    pool: env.EMAIL_HOST !== 'smtp.gmail.com',             // Disable pooling for Gmail to prevent connection drops
     maxConnections: 5,      // Limit simultaneous connections
     maxMessages: 100,       // Max messages per connection
     rateLimit: 10,          // Throttle to maximum 10 messages per second
+    tls: {
+      rejectUnauthorized: false // Prevent local SSL certificate authorization errors
+    }
   };
 
   if (hasAuth) {
