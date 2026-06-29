@@ -802,7 +802,7 @@ const handleAddToCart = async () => {
   color: var(--color-primary);
   background: transparent;
   pointer-events: none;
-  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .qty-input::-webkit-outer-spin-button,
