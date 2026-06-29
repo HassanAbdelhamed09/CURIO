@@ -78,6 +78,23 @@ export interface PaginatedUsersData {
   page: number;
 }
 
+export interface SellerRegistryItem {
+  _id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  status: 'active' | 'blocked' | 'deleted';
+  createdAt: string;
+  productsCount: number;
+}
+
+export interface PaginatedSellersData {
+  sellers: SellerRegistryItem[];
+  total: number;
+  pages: number;
+  page: number;
+}
+
 export const adminApi = {
   async fetchDashboardData(): Promise<ApiResponse<DashboardData>> {
     const response = await http.get<ApiResponse<DashboardData>>('/admin/dashboard');
@@ -92,6 +109,15 @@ export const adminApi = {
     status?: string;
   }): Promise<ApiResponse<PaginatedUsersData>> {
     const response = await http.get<ApiResponse<PaginatedUsersData>>('/admin/users', { params });
+    return response.data;
+  },
+
+  async fetchSellers(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<ApiResponse<PaginatedSellersData>> {
+    const response = await http.get<ApiResponse<PaginatedSellersData>>('/admin/sellers', { params });
     return response.data;
   },
 

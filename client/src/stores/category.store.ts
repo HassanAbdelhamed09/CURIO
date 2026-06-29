@@ -8,11 +8,11 @@ export const useCategoryStore = defineStore('category', () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (includeDeleted = false) => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await categoryApi.getAll();
+      const response = await categoryApi.getAll({ includeDeleted });
       if (response.success && response.data) {
         categories.value = response.data;
       }
@@ -64,9 +64,32 @@ export const useCategoryStore = defineStore('category', () => {
     error.value = null;
     try {
       await categoryApi.delete(id);
-      categories.value = categories.value.filter((c) => c._id !== id);
+      // Update local cache status instead of removing if we are in admin mode,
+      // or filter it out if we just fetch all again. Let's toggle local status or refetch.
+      const idx = categories.value.findIndex((c) => c._id === id);
+      if (idx !== -1) {
+        categories.value[idx].status = 'deleted';
+      }
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to delete category';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const restoreCategory = async (id: string) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await categoryApi.restore(id);
+      if (response.success && response.data) {
+        const idx = categories.value.findIndex((c) => c._id === id);
+        if (idx !== -1) categories.value[idx] = response.data;
+      }
+      return response;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to restore category';
       throw err;
     } finally {
       loading.value = false;
@@ -81,6 +104,7 @@ export const useCategoryStore = defineStore('category', () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    restoreCategory,
   };
 });
 

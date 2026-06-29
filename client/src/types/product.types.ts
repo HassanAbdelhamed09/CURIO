@@ -6,6 +6,7 @@ export interface Category {
   slug: string;
   description?: string;
   imageUrl?: string;
+  status?: 'active' | 'deleted';
   createdAt: string;
   updatedAt: string;
 }
@@ -50,6 +51,9 @@ export interface ProductFilters {
   categoryId?: string;
   minPrice?: number;
   maxPrice?: number;
+  seller?: string;
+  stockStatus?: 'in' | 'out' | 'low' | 'all';
+  status?: string;
 }
 
 export interface CreateProductPayload {
