@@ -10,7 +10,7 @@ export class OrderController {
   public checkout = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.cartOwner?.userId;
     const guestId = req.cartOwner?.guestId;
-    const { fullName, email, phone, address, city, country, postalCode } = req.body;
+    const { fullName, email, phone, address, city, country, postalCode, paymentMethod } = req.body;
 
     // Validate checkout fields
     const errors: Record<string, string[]> = {};
@@ -35,7 +35,12 @@ export class OrderController {
 
     const shippingAddress = { fullName, email, phone, address, city, country, postalCode };
 
-    const { order, checkoutUrl } = await orderService.checkout(shippingAddress, userId, guestId);
+    const { order, checkoutUrl } = await orderService.checkout(
+      shippingAddress,
+      userId,
+      guestId,
+      paymentMethod
+    );
 
     res.status(201).json({
       success: true,

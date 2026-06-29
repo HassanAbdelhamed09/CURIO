@@ -29,6 +29,7 @@ export interface CartTotals {
   discount: number;
   shipping: number;
   tax: number;
+  taxRate?: number;
   total: number;
 }
 
@@ -69,6 +70,7 @@ export interface OrderData {
   totals: CartTotals;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus?: 'pending' | 'paid' | 'failed';
+  paymentMethod?: 'card' | 'cash';
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +94,18 @@ export interface OrdersHistoryApiResponse {
   success: boolean;
   message: string;
   data: OrderData[];
+}
+
+export interface ActivePromoInfo {
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+}
+
+export interface ActivePromosApiResponse {
+  success: boolean;
+  message: string;
+  data: ActivePromoInfo[];
 }
 
 export const cartApi = {
@@ -130,8 +144,14 @@ export const cartApi = {
     return response.data;
   },
 
-  checkout: async (shippingAddress: ShippingAddress): Promise<CheckoutApiResponse> => {
-    const response = await http.post('/checkout', shippingAddress);
+  checkout: async (payload: {
+    shippingAddress: ShippingAddress;
+    paymentMethod?: 'card' | 'cash';
+  }): Promise<CheckoutApiResponse> => {
+    const response = await http.post('/checkout', {
+      ...payload.shippingAddress,
+      paymentMethod: payload.paymentMethod,
+    });
     return response.data;
   },
 
@@ -152,6 +172,11 @@ export const cartApi = {
 
   updateOrderStatus: async (orderId: string, status: string): Promise<OrderApiResponse> => {
     const response = await http.patch(`/orders/${orderId}/status`, { status });
+    return response.data;
+  },
+
+  fetchActivePromos: async (): Promise<ActivePromosApiResponse> => {
+    const response = await http.get('/cart/active-promos');
     return response.data;
   },
 };

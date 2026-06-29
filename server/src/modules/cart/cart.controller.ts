@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { cartService } from './cart.service.js';
+import { PromoCode } from './promo.model.js';
 
 export class CartController {
   /**
@@ -133,6 +134,34 @@ export class CartController {
       success: true,
       message: 'Promo code removed successfully.',
       data,
+    });
+  });
+
+  /**
+   * GET /api/cart/active-promos
+   * Returns a list of active promo codes for customer presentation.
+   */
+  public getActivePromos = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const data = await PromoCode.find({
+      isActive: true,
+      $or: [
+        { expirationDate: { $exists: false } },
+        { expirationDate: null },
+        { expirationDate: { $gt: new Date() } }
+      ]
+    })
+      .select('code discountType discountValue usageLimit usedCount')
+      .limit(3);
+
+    // Keep only codes that haven't hit their usageLimit
+    const filtered = data.filter(
+      p => p.usageLimit === undefined || p.usedCount < p.usageLimit
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Active promo codes retrieved successfully.',
+      data: filtered,
     });
   });
 }

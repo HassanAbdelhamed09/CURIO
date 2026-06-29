@@ -5,6 +5,8 @@ export interface IPromoCode extends Document {
   discountType: 'percentage' | 'fixed';
   discountValue: number;
   isActive: boolean;
+  usageLimit?: number;
+  usedCount: number;
   expirationDate?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -32,6 +34,15 @@ const promoCodeSchema = new Schema<IPromoCode>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    usageLimit: {
+      type: Number,
+      min: 0,
+    },
+    usedCount: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     expirationDate: {
       type: Date,

@@ -8,6 +8,8 @@ interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   status?: string;
+  seller?: string;
+  stockStatus?: 'in' | 'out' | 'low' | 'all';
 }
 
 export class ProductService {
@@ -17,8 +19,12 @@ export class ProductService {
   public async getAll(filters: ProductFilters = {}): Promise<IProduct[]> {
     const query: Record<string, any> = {};
 
-    // Only show active products to the public unless status is explicitly set
-    query.status = filters.status || 'active';
+    // Filter by status. 'all' is used by admins to fetch active, draft, and archived items.
+    if (filters.status && filters.status !== 'all') {
+      query.status = filters.status;
+    } else if (!filters.status) {
+      query.status = 'active';
+    }
 
     if (filters.search) {
       const searchRegex = { $regex: filters.search, $options: 'i' };
@@ -32,10 +38,24 @@ export class ProductService {
       query.categoryId = new Types.ObjectId(filters.categoryId);
     }
 
+    if (filters.seller) {
+      query.seller = new Types.ObjectId(filters.seller);
+    }
+
     if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
       query.price = {};
       if (filters.minPrice !== undefined) query.price.$gte = filters.minPrice;
       if (filters.maxPrice !== undefined) query.price.$lte = filters.maxPrice;
+    }
+
+    if (filters.stockStatus) {
+      if (filters.stockStatus === 'out') {
+        query.stock = 0;
+      } else if (filters.stockStatus === 'low') {
+        query.stock = { $gt: 0, $lte: 5 };
+      } else if (filters.stockStatus === 'in') {
+        query.stock = { $gt: 0 };
+      }
     }
 
     return Product.find(query)

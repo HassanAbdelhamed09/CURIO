@@ -4,6 +4,7 @@ import { ApiError } from '../../utils/ApiError.js';
 import { Order, IOrder, IShippingAddress } from './order.model.js';
 import { Product } from '../products/product.model.js';
 import { cartService } from './cart.service.js';
+import { PromoCode } from './promo.model.js';
 import { env } from '../../config/env.js';
 import { sendEmail } from '../../services/email.service.js';
 import { getOrderConfirmationTemplate, getOrderStatusUpdateTemplate } from '../../utils/emailTemplates.js';
@@ -17,7 +18,8 @@ export class OrderService {
   public async checkout(
     shippingAddress: IShippingAddress,
     userId?: string,
-    guestId?: string
+    guestId?: string,
+    paymentMethod: 'card' | 'cash' = 'card'
   ): Promise<{ order: IOrder; checkoutUrl?: string }> {
     // 1. Retrieve current cart
     const cart = await cartService.getOrCreateCart(userId, guestId);
@@ -71,8 +73,9 @@ export class OrderService {
       items: orderItems,
       shippingAddress,
       totals,
-      status: 'pending',
+      status: paymentMethod === 'cash' ? 'confirmed' : 'pending',
       paymentStatus: 'pending',
+      paymentMethod,
     };
 
     if (userId) {
@@ -94,8 +97,23 @@ export class OrderService {
       });
     }
 
-    // 6. Generate Stripe session if Stripe is configured
-    if (stripe) {
+    if (paymentMethod === 'cash') {
+      await cartService.clearCart(userId, guestId);
+      if (order.promoCode) {
+        await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
+      }
+      // Send confirmation email
+      try {
+        const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
+        await sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml);
+      } catch (emailErr) {
+        console.error('[Email Error] Failed to send order confirmation email:', emailErr);
+      }
+      return { order };
+    }
+
+    // 6. Generate Stripe session if Stripe is configured and payment method is card
+    if (stripe && paymentMethod === 'card') {
       try {
         const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderItems.map((item) => {
           return {
@@ -182,6 +200,10 @@ export class OrderService {
     order.status = 'processing';
     await order.save();
 
+    if (order.promoCode) {
+      await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
+    }
+
     // Send confirmation email
     try {
       const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
@@ -238,6 +260,10 @@ export class OrderService {
       // Clear checkout owner's cart now that order is finalized
       await cartService.clearCart(userId, guestId);
 
+      if (order.promoCode) {
+        await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
+      }
+
       // Send confirmation email
       try {
         const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
@@ -259,14 +285,26 @@ export class OrderService {
    */
   public async getOrdersForRole(userId: string, role: string): Promise<IOrder[]> {
     if (role === 'admin') {
-      return await Order.find({}).sort({ createdAt: -1 });
+      return await Order.find({})
+        .populate('userId', 'fullName email')
+        .populate({
+          path: 'items.productId',
+          select: 'name seller',
+          populate: {
+            path: 'seller',
+            select: 'fullName'
+          }
+        })
+        .sort({ createdAt: -1 });
     }
 
     if (role === 'seller') {
       // Find all product IDs owned by this seller
       const sellerProductIds = await Product.find({ seller: new Types.ObjectId(userId) }).distinct('_id');
       // Find orders containing any of those product IDs
-      return await Order.find({ 'items.productId': { $in: sellerProductIds } }).sort({ createdAt: -1 });
+      return await Order.find({ 'items.productId': { $in: sellerProductIds } })
+        .populate('userId', 'fullName email')
+        .sort({ createdAt: -1 });
     }
 
     // Customer / Collector
@@ -278,7 +316,7 @@ export class OrderService {
    */
   public async updateOrderStatus(
     orderId: string,
-    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
     requestingUser: { _id: string; role: string }
   ): Promise<IOrder> {
     if (requestingUser.role !== 'admin' && requestingUser.role !== 'seller') {
@@ -296,6 +334,11 @@ export class OrderService {
 
     const previousStatus = order.status;
     order.status = status;
+
+    // Automatically set paymentStatus to paid when COD order is marked as delivered
+    if (status === 'delivered' && order.paymentMethod === 'cash') {
+      order.paymentStatus = 'paid';
+    }
 
     // Handle inventory replenishment on cancellation
     if (status === 'cancelled' && previousStatus !== 'cancelled') {
@@ -327,7 +370,15 @@ export class OrderService {
     requestingUser?: { _id: string; role: string },
     requestingGuestId?: string
   ): Promise<IOrder> {
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId)
+      .populate('userId', 'fullName email')
+      .populate({
+        path: 'items.productId',
+        populate: {
+          path: 'seller',
+          select: 'fullName email'
+        }
+      });
     if (!order) {
       throw new ApiError(404, 'Order not found.', 'ORDER_NOT_FOUND');
     }
@@ -339,7 +390,10 @@ export class OrderService {
 
     // Check ownership
     if (order.userId) {
-      if (!requestingUser || order.userId.toString() !== requestingUser._id.toString()) {
+      const orderUserId = (order.userId as any)._id
+        ? (order.userId as any)._id.toString()
+        : order.userId.toString();
+      if (!requestingUser || orderUserId !== requestingUser._id.toString()) {
         throw new ApiError(403, 'Access denied. You do not own this order.', 'ACCESS_DENIED');
       }
     } else if (order.guestId) {

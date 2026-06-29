@@ -13,8 +13,8 @@ import type {
 // ─── Categories ──────────────────────────────────────────────────────────────
 
 export const categoryApi = {
-  async getAll(): Promise<ApiResponse<Category[]>> {
-    const response = await http.get<ApiResponse<Category[]>>('/categories');
+  async getAll(params?: { includeDeleted?: boolean }): Promise<ApiResponse<Category[]>> {
+    const response = await http.get<ApiResponse<Category[]>>('/categories', { params });
     return response.data;
   },
 
@@ -35,6 +35,11 @@ export const categoryApi = {
 
   async delete(id: string): Promise<ApiResponse<null>> {
     const response = await http.delete<ApiResponse<null>>(`/categories/${id}`);
+    return response.data;
+  },
+
+  async restore(id: string): Promise<ApiResponse<Category>> {
+    const response = await http.post<ApiResponse<Category>>(`/categories/${id}/restore`);
     return response.data;
   },
 };
