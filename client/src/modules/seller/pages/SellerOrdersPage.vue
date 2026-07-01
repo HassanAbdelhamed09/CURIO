@@ -3,7 +3,7 @@
  * SellerOrdersPage
  * Page for sellers to manage orders containing their products.
  * Supports viewing details and advancing order status (Accept, Processing, Shipped, Delivered, Cancel).
- * Enhanced to handle multi-vendor orders with restricted logistics actions and premium invoice UI.
+ * Enhanced to handle multi-vendor orders, backend pagination, and dashboard stats counters.
  */
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAuthStore } from '../../../stores/auth.store.js';
@@ -29,6 +29,7 @@ import BaseTable from '../../../components/ui/BaseTable.vue';
 import BaseModal from '../../../components/ui/BaseModal.vue';
 import BaseConfirmDialog from '../../../components/ui/BaseConfirmDialog.vue';
 import BaseSelect from '../../../components/ui/BaseSelect.vue';
+import BasePagination from '../../../components/ui/BasePagination.vue';
 
 const authStore = useAuthStore();
 const toastStore = useToastStore();
@@ -63,6 +64,24 @@ const statusOptions = [
   { label: 'Delivered', value: 'delivered' },
   { label: 'Cancelled', value: 'cancelled' },
 ];
+
+// Pagination & Stats
+const pagination = ref({
+  page: 1,
+  limit: 10,
+  total: 0,
+  pages: 1,
+});
+
+const stats = ref({
+  total: 0,
+  pending: 0,
+  confirmed: 0,
+  processing: 0,
+  shipped: 0,
+  delivered: 0,
+  cancelled: 0,
+});
 
 // Detail Modal state
 const showViewModal = ref(false);
@@ -108,14 +127,30 @@ const getSellerTotalQuantity = (order: OrderData): number => {
   return getSellerItems(order).reduce((sum, item) => sum + item.quantity, 0);
 };
 
-const fetchOrders = async () => {
+const fetchOrders = async (page = 1) => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await cartApi.getMyOrders();
+    const response = await cartApi.getMyOrders({
+      page,
+      limit: pagination.value.limit,
+      search: search.value,
+      status: statusFilter.value,
+    });
     if (response.success && response.data) {
-      orders.value = response.data;
-      applyFilters();
+      if (response.data.orders) {
+        orders.value = response.data.orders;
+        filteredOrders.value = response.data.orders;
+        pagination.value.total = response.data.total;
+        pagination.value.pages = response.data.pages;
+        pagination.value.page = response.data.page;
+        if (response.data.stats) {
+          stats.value = response.data.stats;
+        }
+      } else {
+        orders.value = response.data;
+        filteredOrders.value = response.data;
+      }
     }
   } catch (err: any) {
     error.value = err?.response?.data?.message || 'Failed to retrieve order history.';
@@ -124,40 +159,21 @@ const fetchOrders = async () => {
   }
 };
 
-const applyFilters = () => {
-  let list = [...orders.value];
-
-  // Filter by Status
-  if (statusFilter.value) {
-    list = list.filter((o) => o.status === statusFilter.value);
-  }
-
-  // Filter by Search Keyword (Order ID, Customer Name, or Product Name)
-  if (search.value.trim()) {
-    const term = search.value.trim().toLowerCase();
-    list = list.filter((o) => {
-      const orderIdMatch = o._id.toLowerCase().includes(term);
-      const customerNameMatch = o.shippingAddress.fullName.toLowerCase().includes(term);
-      const emailMatch = o.shippingAddress.email.toLowerCase().includes(term);
-      
-      const hasProductMatch = getSellerItems(o).some(item => 
-        item.name.toLowerCase().includes(term)
-      );
-
-      return orderIdMatch || customerNameMatch || emailMatch || hasProductMatch;
-    });
-  }
-
-  filteredOrders.value = list;
-};
-
+let debounceTimeout: any = null;
 watch([search, statusFilter], () => {
-  applyFilters();
+  if (debounceTimeout) clearTimeout(debounceTimeout);
+  debounceTimeout = setTimeout(() => {
+    fetchOrders(1);
+  }, 350);
 });
 
 onMounted(() => {
-  fetchOrders();
+  fetchOrders(1);
 });
+
+const handlePageChange = (newPage: number) => {
+  fetchOrders(newPage);
+};
 
 const formatDate = (dateStr: string): string => {
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -266,7 +282,7 @@ const handleStatusUpdate = (order: OrderData, newStatus: any) => {
               ? `Your items were successfully cancelled from the order.`
               : `Order status advanced to status: ${newStatus}.`
           );
-          fetchOrders();
+          fetchOrders(pagination.value.page);
         }
       } catch (err: any) {
         const msg = err?.response?.data?.message || 'Failed to update order status.';
@@ -287,10 +303,42 @@ const handleStatusUpdate = (order: OrderData, newStatus: any) => {
         <p class="page-subtitle">Track payments, manage shipment logistics, and confirm buyer collections.</p>
       </div>
 
-      <button class="sync-btn" @click="fetchOrders" :disabled="loading">
+      <button class="sync-btn" @click="fetchOrders(pagination.page)" :disabled="loading">
         <RefreshCw :class="['btn-icon', { 'spin-animation': loading }]" /> Refresh List
       </button>
     </header>
+
+    <!-- Statistics Insights Cards -->
+    <section class="insights-stats-row" v-if="stats.total > 0">
+      <div class="stat-card">
+        <span class="stat-card-label">Total Orders</span>
+        <strong class="stat-card-value">{{ stats.total }}</strong>
+      </div>
+      <div class="stat-card stat-card--pending">
+        <span class="stat-card-label">Pending</span>
+        <strong class="stat-card-value">{{ stats.pending }}</strong>
+      </div>
+      <div class="stat-card stat-card--confirmed">
+        <span class="stat-card-label">Confirmed</span>
+        <strong class="stat-card-value">{{ stats.confirmed }}</strong>
+      </div>
+      <div class="stat-card stat-card--processing">
+        <span class="stat-card-label">Processing</span>
+        <strong class="stat-card-value">{{ stats.processing }}</strong>
+      </div>
+      <div class="stat-card stat-card--shipped">
+        <span class="stat-card-label">Shipped</span>
+        <strong class="stat-card-value">{{ stats.shipped }}</strong>
+      </div>
+      <div class="stat-card stat-card--delivered">
+        <span class="stat-card-label">Delivered</span>
+        <strong class="stat-card-value">{{ stats.delivered }}</strong>
+      </div>
+      <div class="stat-card stat-card--cancelled">
+        <span class="stat-card-label">Cancelled</span>
+        <strong class="stat-card-value">{{ stats.cancelled }}</strong>
+      </div>
+    </section>
 
     <!-- Toolbar Filters -->
     <section class="controls-toolbar">
@@ -299,7 +347,7 @@ const handleStatusUpdate = (order: OrderData, newStatus: any) => {
         <input
           v-model="search"
           type="text"
-          placeholder="Search by Order #, Customer, or Product..."
+          placeholder="Search by Customer name, email, or full reference ID..."
           class="search-input-box"
         />
       </div>
@@ -314,7 +362,7 @@ const handleStatusUpdate = (order: OrderData, newStatus: any) => {
       <AlertTriangle class="error-icon" />
       <h3>Failed to load orders</h3>
       <p>{{ error }}</p>
-      <button class="retry-btn" @click="fetchOrders">Retry</button>
+      <button class="retry-btn" @click="fetchOrders(1)">Retry</button>
     </div>
 
     <!-- Orders Table -->
@@ -448,6 +496,14 @@ const handleStatusUpdate = (order: OrderData, newStatus: any) => {
           </div>
         </template>
       </BaseTable>
+
+      <div class="orders-pagination-wrap" v-if="pagination.pages > 1">
+        <BasePagination
+          :currentPage="pagination.page"
+          :totalPages="pagination.pages"
+          @change="handlePageChange"
+        />
+      </div>
     </template>
 
     <!-- MODAL: View Order Details (Premium Register Receipt) -->
@@ -662,6 +718,67 @@ const handleStatusUpdate = (order: OrderData, newStatus: any) => {
   }
 }
 
+/* Statistics Insights cards banner */
+.insights-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.03);
+}
+
+.stat-card-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.stat-card-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-h);
+}
+
+.stat-card--pending {
+  border-left: 4px solid #d97706;
+}
+.stat-card--confirmed {
+  border-left: 4px solid #0284c7;
+}
+.stat-card--processing {
+  border-left: 4px solid #7c3aed;
+}
+.stat-card--shipped {
+  border-left: 4px solid #f59e0b;
+}
+.stat-card--delivered {
+  border-left: 4px solid #059669;
+}
+.stat-card--cancelled {
+  border-left: 4px solid #dc2626;
+}
+
+/* Toolbar filters */
 .controls-toolbar {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -860,6 +977,13 @@ const handleStatusUpdate = (order: OrderData, newStatus: any) => {
 .action-icon {
   width: 16px;
   height: 16px;
+}
+
+/* Pagination container */
+.orders-pagination-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
 }
 
 /* Modal CSS details */

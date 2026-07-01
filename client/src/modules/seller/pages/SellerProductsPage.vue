@@ -181,6 +181,26 @@ const handleDeleteConfirm = async () => {
       </BaseButton>
     </header>
 
+    <!-- Statistics Insights Cards -->
+    <section class="insights-stats-row" v-if="sellerProductStore.stats.total > 0">
+      <div class="stat-card">
+        <span class="stat-card-label">Total Products</span>
+        <strong class="stat-card-value">{{ sellerProductStore.stats.total }}</strong>
+      </div>
+      <div class="stat-card stat-card--active">
+        <span class="stat-card-label">Active</span>
+        <strong class="stat-card-value">{{ sellerProductStore.stats.active }}</strong>
+      </div>
+      <div class="stat-card stat-card--draft">
+        <span class="stat-card-label">Draft / Hidden</span>
+        <strong class="stat-card-value">{{ sellerProductStore.stats.draft }}</strong>
+      </div>
+      <div class="stat-card stat-card--archived">
+        <span class="stat-card-label">Archived / Moderated</span>
+        <strong class="stat-card-value">{{ sellerProductStore.stats.archived }}</strong>
+      </div>
+    </section>
+
     <!-- Filters Section -->
     <section class="filters-bar-card">
       <div class="filters-grid">
@@ -1038,5 +1058,56 @@ const handleDeleteConfirm = async () => {
 .action-icon {
   width: 14px;
   height: 14px;
+}
+
+/* Statistics Insights cards banner */
+.insights-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.03);
+}
+
+.stat-card-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.stat-card-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text-h);
+}
+
+.stat-card--active {
+  border-left: 4px solid #059669;
+}
+.stat-card--draft {
+  border-left: 4px solid #d97706;
+}
+.stat-card--archived {
+  border-left: 4px solid #dc2626;
 }
 </style>
