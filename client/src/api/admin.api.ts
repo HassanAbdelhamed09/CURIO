@@ -1,5 +1,6 @@
 import { http } from './http.js';
 import type { ApiResponse } from '../types/api.types.js';
+import type { Product } from '../types/product.types.js';
 
 export interface DashboardStats {
   customers: number;
@@ -215,9 +216,25 @@ export interface PlatformSettings {
   freeShippingThreshold: number;
   shippingCost: number;
   contactEmail: string;
+  lowStockThreshold: number;
 }
 
 export const adminApi = {
+  async fetchAllProducts(params?: {
+    search?: string;
+    categoryId?: string;
+    status?: string;
+    stockStatus?: string;
+  }): Promise<ApiResponse<Product[]>> {
+    const response = await http.get<ApiResponse<Product[]>>('/admin/products', { params });
+    return response.data;
+  },
+
+  async archiveProduct(id: string): Promise<ApiResponse<Product>> {
+    const response = await http.patch<ApiResponse<Product>>(`/admin/products/${id}/archive`);
+    return response.data;
+  },
+
   async fetchDashboardData(): Promise<ApiResponse<DashboardData>> {
     const response = await http.get<ApiResponse<DashboardData>>('/admin/dashboard');
     return response.data;

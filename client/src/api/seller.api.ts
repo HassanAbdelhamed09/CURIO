@@ -53,6 +53,9 @@ export interface SellerDashboardData {
   stats: SellerDashboardStats;
   charts: SellerDashboardCharts;
   recent: SellerDashboardRecent;
+  settings?: {
+    lowStockThreshold: number;
+  };
 }
 
 export const sellerApi = {

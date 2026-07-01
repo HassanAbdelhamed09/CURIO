@@ -17,7 +17,10 @@ export interface Product {
   slug: string;
   description: string;
   price: number;
+  discount?: number;
+  effectivePrice?: number;
   stock: number;
+  stockStatus?: 'in' | 'low' | 'out';
   categoryId: Category;
   images: string[];
   seller: {
@@ -30,6 +33,8 @@ export interface Product {
     storePhone?: string;
   };
   status: ProductStatus;
+  deletedAt?: string | null;
+  archivedByAdmin?: boolean;
   averageRating: number;
   reviewCount: number;
   createdAt: string;
@@ -68,6 +73,7 @@ export interface CreateProductPayload {
   categoryId: string;
   images?: string[];
   status?: ProductStatus;
+  discount?: number;
 }
 
 export interface CreateCategoryPayload {
