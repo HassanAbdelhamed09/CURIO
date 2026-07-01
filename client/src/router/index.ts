@@ -154,12 +154,12 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'orders',
         name: 'seller-orders',
-        component: () => import('../modules/seller/pages/SellerDashboardPage.vue'),
+        component: () => import('../modules/seller/pages/SellerOrdersPage.vue'),
       },
       {
         path: 'reviews',
         name: 'seller-reviews',
-        component: () => import('../modules/seller/pages/SellerDashboardPage.vue'),
+        component: () => import('../modules/seller/pages/SellerReviewsPage.vue'),
       },
       {
         path: 'profile',

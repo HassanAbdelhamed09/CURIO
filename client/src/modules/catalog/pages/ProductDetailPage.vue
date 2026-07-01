@@ -301,6 +301,28 @@ const handleAddToCart = async () => {
               </div>
             </div>
             <p class="review-comment">{{ review.comment }}</p>
+
+            <!-- Seller Response sub-block -->
+            <div v-if="review.sellerReply" class="seller-reply-bubble">
+              <div class="reply-header-row">
+                <div class="seller-identity">
+                  <img 
+                    v-if="product?.seller?.storeLogoUrl" 
+                    :src="product.seller.storeLogoUrl" 
+                    class="seller-avatar-img" 
+                    alt="Seller Logo" 
+                  />
+                  <span v-else class="seller-avatar-initial">
+                    {{ (product?.seller?.storeName || product?.seller?.fullName || 'S').charAt(0).toUpperCase() }}
+                  </span>
+                  <span class="seller-badge-title">
+                    {{ product?.seller?.storeName || product?.seller?.fullName || 'Studio response' }}
+                  </span>
+                </div>
+                <span class="response-tag">Response</span>
+              </div>
+              <p class="reply-body-text">{{ review.sellerReply }}</p>
+            </div>
           </li>
         </ul>
       </section>
@@ -921,6 +943,74 @@ const handleAddToCart = async () => {
   font-size: 0.85rem;
   color: var(--color-text-light);
   line-height: 1.5;
+  margin: 0;
+}
+
+/* Seller Review Response Styles */
+.seller-reply-bubble {
+  background-color: var(--color-bg-alt);
+  border-left: 3px solid var(--color-primary);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.reply-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.seller-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seller-avatar-img {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
+.seller-avatar-initial {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.seller-badge-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.response-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background-color: rgba(15, 61, 94, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reply-body-text {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--color-text);
   margin: 0;
 }
 </style>
