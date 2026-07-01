@@ -28,6 +28,7 @@ import {
 } from '@lucide/vue';
 import { useAuthStore } from '../../../stores/auth.store.js';
 import { sellerApi, type SellerDashboardData } from '../../../api/seller.api.js';
+import { useSellerProductStore } from '../../../stores/sellerProduct.store.js';
 
 // Register Chart.js components
 ChartJS.register(
@@ -43,6 +44,7 @@ ChartJS.register(
 );
 
 const authStore = useAuthStore();
+const sellerProductStore = useSellerProductStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
 
@@ -80,6 +82,7 @@ const fetchDashboardData = async () => {
 
 onMounted(() => {
   fetchDashboardData();
+  sellerProductStore.fetchLowStockThreshold();
 });
 
 // Chart data mapping
@@ -204,7 +207,7 @@ const statusColor = (status: string): string => {
         <!-- Low Stock Warning Card -->
         <div class="stat-card border-glow-amber" :class="{ 'warning-glow': dashboardData.stats.lowStock > 0 }">
           <div class="stat-meta">
-            <span class="stat-label">Low Stock items</span>
+            <span class="stat-label">Low Stock items (≤ {{ sellerProductStore.lowStockThreshold }})</span>
             <span class="stat-value">{{ dashboardData.stats.lowStock }}</span>
           </div>
           <div class="stat-icon-wrap" :class="dashboardData.stats.lowStock > 0 ? 'bg-amber' : 'bg-amber-dim'">

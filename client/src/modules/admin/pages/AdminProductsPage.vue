@@ -13,7 +13,7 @@ import { useToastStore } from '../../../stores/toast.store.js';
 import { useAuthStore } from '../../../stores/auth.store.js';
 import { adminApi } from '../../../api/admin.api.js';
 import type { CreateProductPayload } from '../../../types/product.types.js';
-import { Plus, Pencil, Trash2, Package, Eye, ShieldAlert, RotateCcw, SlidersHorizontal } from '@lucide/vue';
+import { Plus, Pencil, Trash2, Package, Eye, ShieldAlert, RotateCcw, SlidersHorizontal, Archive } from '@lucide/vue';
 
 // UI Base Components
 import BaseButton from '../../../components/ui/BaseButton.vue';
@@ -373,6 +373,25 @@ const handleRestoreProduct = (product: any) => {
   );
 };
 
+// "Force Archive" moderation action
+const handleForceArchiveProduct = (product: any) => {
+  openConfirm(
+    'Force Archive Product',
+    `Are you sure you want to force archive "${product.name}"? This moderation action will hide it from the buyer catalog and label it as archived.`,
+    'danger',
+    async () => {
+      try {
+        await adminApi.archiveProduct(product._id);
+        toastStore.success('Product force-archived successfully.');
+        applyFilters();
+      } catch (err: any) {
+        toastStore.error(err.response?.data?.message || 'Failed to force archive product.');
+        throw err;
+      }
+    }
+  );
+};
+
 const statusLabel: Record<string, string> = {
   active: 'Active',
   draft: 'Draft',
@@ -594,11 +613,21 @@ const statusLabel: Record<string, string> = {
             <RotateCcw class="action-icon" />
           </button>
 
+          <!-- Force Archive (Admin Moderation) -->
+          <button
+            v-if="authStore.user?.role === 'admin' && item.status !== 'archived'"
+            class="action-btn hide-btn"
+            @click="handleForceArchiveProduct(item)"
+            title="Force Archive (Admin)"
+          >
+            <Archive class="action-icon" />
+          </button>
+
           <button
             class="action-btn delete-btn"
             @click="handleDeleteProduct(item)"
             :aria-label="`Delete ${item.name}`"
-            title="Delete product permanently"
+            title="Delete product listing"
           >
             <Trash2 class="action-icon" />
           </button>
