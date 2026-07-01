@@ -15,16 +15,16 @@ The project is structured as a TypeScript monorepo using npm workspaces, with a 
 * **Styling**: Vanilla CSS (custom design system tokens and responsive grids)
 * **Iconography**: [Lucide Vue](https://lucide.dev/) (vector SVG icons)
 * **Build Tool**: [Vite](https://vite.dev/) (HMR compiler)
-* **Charts**: [Chart.js](https://www.chartjs.org/) via `vue-chartjs` (seller dashboard analytics)
+* **Charts**: [Chart.js](https://www.chartjs.org/) via `vue-chartjs` (admin and seller dashboard analytics)
 
 ### Backend (Server)
 * **Runtime & Framework**: [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/) (TypeScript)
 * **Database**: [MongoDB](https://www.mongodb.com/) via [Mongoose ODM](https://mongoosejs.com/)
-* **Authentication**: JWT Access & Refresh Tokens (with Token Rotation and Session Revocation)
+* **Authentication**: JWT Access & Refresh Tokens 
 * **Third-Party Auth**: Google OAuth 2.0 (Identity Services integration)
 * **Email System**: SMTP email client via [Nodemailer](https://nodemailer.com/) (supporting connection pooling and secure delivery)
 * **Payment**: [Stripe](https://stripe.com/) Checkout Sessions (with offline sandbox fallback)
-* **File Storage**: Cloud/S3 storage adapter for product images and seller logos
+* **File Storage**: Cloudinary service for  images
 * **Validation**: Custom lightweight `validate()` middleware with field-level schema rules
 
 ---
