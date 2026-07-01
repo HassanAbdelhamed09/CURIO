@@ -24,6 +24,12 @@ export const useSellerProductStore = defineStore('sellerProduct', () => {
   });
 
   const lowStockThreshold = ref(5);
+  const stats = ref({
+    total: 0,
+    active: 0,
+    draft: 0,
+    archived: 0,
+  });
 
   const fetchLowStockThreshold = async () => {
     try {
@@ -48,6 +54,9 @@ export const useSellerProductStore = defineStore('sellerProduct', () => {
       if (res.success && res.data) {
         products.value = res.data.products;
         pagination.value = res.data.pagination;
+        if (res.data.stats) {
+          stats.value = res.data.stats;
+        }
       }
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch seller products';
@@ -102,8 +111,6 @@ export const useSellerProductStore = defineStore('sellerProduct', () => {
           products.value[index].stock = res.data.stock;
           products.value[index].stockStatus = res.data.stockStatus;
         }
-        // Refresh threshold settings just in case
-        await fetchLowStockThreshold();
       }
       return res;
     } catch (err: any) {
@@ -118,14 +125,8 @@ export const useSellerProductStore = defineStore('sellerProduct', () => {
     loading.value = true;
     error.value = null;
     try {
-      const res = await sellerProductsApi.deleteProduct(id);
-      if (res.success) {
-        // If we deleted the last item on the page, go to previous page
-        const isLastItemOnPage = products.value.length === 1 && pagination.value.page > 1;
-        const targetPage = isLastItemOnPage ? pagination.value.page - 1 : pagination.value.page;
-        await fetchProducts(targetPage);
-      }
-      return res;
+      await sellerProductsApi.deleteProduct(id);
+      products.value = products.value.filter((p) => p._id !== id);
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to delete product';
       throw err;
@@ -168,6 +169,7 @@ export const useSellerProductStore = defineStore('sellerProduct', () => {
     loading,
     error,
     pagination,
+    stats,
     filters,
     lowStockThreshold,
     fetchLowStockThreshold,

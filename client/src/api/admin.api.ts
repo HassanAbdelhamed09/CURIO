@@ -77,6 +77,12 @@ export interface PaginatedUsersData {
   total: number;
   pages: number;
   page: number;
+  stats?: {
+    totalCustomers: number;
+    activeCustomers: number;
+    totalSellers: number;
+    activeSellers: number;
+  };
 }
 
 export interface SellerRegistryItem {
@@ -96,6 +102,12 @@ export interface PaginatedSellersData {
   total: number;
   pages: number;
   page: number;
+  stats?: {
+    totalCustomers: number;
+    activeCustomers: number;
+    totalSellers: number;
+    activeSellers: number;
+  };
 }
 
 export interface OrderItem {
@@ -226,8 +238,10 @@ export const adminApi = {
     categoryId?: string;
     status?: string;
     stockStatus?: string;
-  }): Promise<ApiResponse<Product[]>> {
-    const response = await http.get<ApiResponse<Product[]>>('/admin/products', { params });
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<any>> {
+    const response = await http.get<ApiResponse<any>>('/admin/products', { params });
     return response.data;
   },
 
@@ -280,8 +294,8 @@ export const adminApi = {
     limit?: number;
     search?: string;
     status?: string;
-  }): Promise<ApiResponse<OrderRegistryItem[]>> {
-    const response = await http.get<ApiResponse<OrderRegistryItem[]>>('/orders', { params });
+  }): Promise<ApiResponse<any>> {
+    const response = await http.get<ApiResponse<any>>('/orders', { params });
     return response.data;
   },
 

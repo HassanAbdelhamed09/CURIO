@@ -10,6 +10,12 @@ export interface SellerProductsResponse {
     total: number;
     pages: number;
   };
+  stats: {
+    total: number;
+    active: number;
+    draft: number;
+    archived: number;
+  };
 }
 
 export const sellerProductsApi = {

@@ -64,6 +64,22 @@ export interface ProductFilters {
   seller?: string;
   stockStatus?: 'in' | 'out' | 'low' | 'all';
   status?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedProductsResponse {
+  products: Product[];
+  total: number;
+  pages: number;
+  page: number;
+  limit: number;
+  stats: {
+    total: number;
+    active: number;
+    draft: number;
+    archived: number;
+  };
 }
 
 export interface CreateProductPayload {
