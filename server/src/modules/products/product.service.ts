@@ -1,6 +1,7 @@
 import { Product, IProduct } from './product.model.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { Types } from 'mongoose';
+import { Setting } from '../admin/setting.model.js';
 
 interface ProductFilters {
   search?: string;
@@ -10,6 +11,7 @@ interface ProductFilters {
   status?: string;
   seller?: string;
   stockStatus?: 'in' | 'out' | 'low' | 'all';
+  lowStockThreshold?: number;
 }
 
 export class ProductService {
@@ -18,6 +20,9 @@ export class ProductService {
    */
   public async getAll(filters: ProductFilters = {}): Promise<IProduct[]> {
     const query: Record<string, any> = {};
+
+    // Always exclude soft-deleted items
+    query.deletedAt = null;
 
     // Filter by status. 'all' is used by admins to fetch active, draft, and archived items.
     if (filters.status && filters.status !== 'all') {
@@ -48,20 +53,45 @@ export class ProductService {
       if (filters.maxPrice !== undefined) query.price.$lte = filters.maxPrice;
     }
 
+    // Resolve low stock threshold
+    let threshold = filters.lowStockThreshold;
+    if (threshold === undefined) {
+      const setting = await Setting.findOne({ key: 'lowStockThreshold' });
+      threshold = setting ? Number(setting.value) : 5;
+    }
+
     if (filters.stockStatus) {
       if (filters.stockStatus === 'out') {
         query.stock = 0;
       } else if (filters.stockStatus === 'low') {
-        query.stock = { $gt: 0, $lte: 5 };
+        query.stock = { $gt: 0, $lte: threshold };
       } else if (filters.stockStatus === 'in') {
-        query.stock = { $gt: 0 };
+        query.stock = { $gt: threshold };
       }
     }
 
-    return Product.find(query)
+    const products = await Product.find(query)
       .populate('categoryId', 'name slug imageUrl')
       .populate('seller', 'fullName avatarUrl')
       .sort({ createdAt: -1 });
+
+    return products.map(product => {
+      const discount = product.discount || 0;
+      const price = product.price;
+      const effectivePrice = Math.round(price * (1 - discount / 100) * 100) / 100;
+      
+      let stockStatus: 'in' | 'low' | 'out' = 'in';
+      if (product.stock === 0) {
+        stockStatus = 'out';
+      } else if (product.stock <= threshold!) {
+        stockStatus = 'low';
+      }
+
+      const productJson = product.toJSON();
+      productJson.effectivePrice = effectivePrice;
+      productJson.stockStatus = stockStatus;
+      return productJson as any;
+    });
   }
 
   /**
@@ -71,10 +101,28 @@ export class ProductService {
     const product = await Product.findById(id)
       .populate('categoryId', 'name slug imageUrl')
       .populate('seller', 'fullName avatarUrl');
-    if (!product) {
+    if (!product || product.deletedAt !== null) {
       throw new ApiError(404, 'Product not found.', 'NOT_FOUND');
     }
-    return product;
+
+    const setting = await Setting.findOne({ key: 'lowStockThreshold' });
+    const threshold = setting ? Number(setting.value) : 5;
+
+    const discount = product.discount || 0;
+    const price = product.price;
+    const effectivePrice = Math.round(price * (1 - discount / 100) * 100) / 100;
+    
+    let stockStatus: 'in' | 'low' | 'out' = 'in';
+    if (product.stock === 0) {
+      stockStatus = 'out';
+    } else if (product.stock <= threshold) {
+      stockStatus = 'low';
+    }
+
+    const productJson = product.toJSON();
+    productJson.effectivePrice = effectivePrice;
+    productJson.stockStatus = stockStatus;
+    return productJson as any;
   }
 
   /**
@@ -90,6 +138,7 @@ export class ProductService {
       categoryId: string;
       images?: string[];
       status?: string;
+      discount?: number;
     }
   ): Promise<IProduct> {
     const slug = this.generateSlug(data.name) + '-' + Date.now();
@@ -101,10 +150,29 @@ export class ProductService {
       categoryId: new Types.ObjectId(data.categoryId),
     });
 
-    return product.populate([
+    const populated = await product.populate([
       { path: 'categoryId', select: 'name slug imageUrl' },
       { path: 'seller', select: 'fullName avatarUrl email role' }
     ]);
+
+    const setting = await Setting.findOne({ key: 'lowStockThreshold' });
+    const threshold = setting ? Number(setting.value) : 5;
+
+    const discount = populated.discount || 0;
+    const price = populated.price;
+    const effectivePrice = Math.round(price * (1 - discount / 100) * 100) / 100;
+
+    let stockStatus: 'in' | 'low' | 'out' = 'in';
+    if (populated.stock === 0) {
+      stockStatus = 'out';
+    } else if (populated.stock <= threshold) {
+      stockStatus = 'low';
+    }
+
+    const productJson = populated.toJSON();
+    productJson.effectivePrice = effectivePrice;
+    productJson.stockStatus = stockStatus;
+    return productJson as any;
   }
 
   /**
@@ -122,10 +190,11 @@ export class ProductService {
       categoryId: string;
       images: string[];
       status: string;
+      discount: number;
     }>
   ): Promise<IProduct> {
     const product = await Product.findById(id);
-    if (!product) {
+    if (!product || product.deletedAt !== null) {
       throw new ApiError(404, 'Product not found.', 'NOT_FOUND');
     }
 
@@ -143,13 +212,43 @@ export class ProductService {
     if (data.stock !== undefined) product.stock = data.stock;
     if (data.categoryId) product.categoryId = new Types.ObjectId(data.categoryId);
     if (data.images !== undefined) product.images = data.images;
-    if (data.status !== undefined) product.status = data.status as any;
+    if (data.status !== undefined) {
+      product.status = data.status as any;
+      // If status is updated by the seller to draft/active, reset the admin archive flag
+      if (userRole === 'seller' && (data.status === 'draft' || data.status === 'active')) {
+        (product as any).archivedByAdmin = false;
+      }
+    }
+    if (data.discount !== undefined) product.discount = data.discount;
+    if ((data as any).archivedByAdmin !== undefined) {
+      (product as any).archivedByAdmin = (data as any).archivedByAdmin;
+    }
 
     await product.save();
-    return product.populate([
+    
+    const populated = await product.populate([
       { path: 'categoryId', select: 'name slug imageUrl' },
       { path: 'seller', select: 'fullName avatarUrl email role' }
     ]);
+
+    const setting = await Setting.findOne({ key: 'lowStockThreshold' });
+    const threshold = setting ? Number(setting.value) : 5;
+
+    const discount = populated.discount || 0;
+    const price = populated.price;
+    const effectivePrice = Math.round(price * (1 - discount / 100) * 100) / 100;
+
+    let stockStatus: 'in' | 'low' | 'out' = 'in';
+    if (populated.stock === 0) {
+      stockStatus = 'out';
+    } else if (populated.stock <= threshold) {
+      stockStatus = 'low';
+    }
+
+    const productJson = populated.toJSON();
+    productJson.effectivePrice = effectivePrice;
+    productJson.stockStatus = stockStatus;
+    return productJson as any;
   }
 
   /**
@@ -157,7 +256,7 @@ export class ProductService {
    */
   public async delete(id: string, userId: string, userRole: string): Promise<void> {
     const product = await Product.findById(id);
-    if (!product) {
+    if (!product || product.deletedAt !== null) {
       throw new ApiError(404, 'Product not found.', 'NOT_FOUND');
     }
 
@@ -165,7 +264,9 @@ export class ProductService {
       throw new ApiError(403, 'You do not have permission to delete this product.', 'FORBIDDEN');
     }
 
-    await product.deleteOne();
+    product.deletedAt = new Date();
+    product.status = 'archived';
+    await product.save();
   }
 
   /**

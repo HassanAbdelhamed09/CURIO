@@ -1,6 +1,7 @@
 import { Product } from '../products/product.model.js';
 import { Order } from '../cart/order.model.js';
 import { Review } from '../products/review.model.js';
+import { Setting } from '../admin/setting.model.js';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -9,16 +10,20 @@ class SellerService {
    * Fetch aggregate and timeline dashboard statistics for a given seller.
    */
   public async getDashboardData(sellerId: string) {
-    // 1. Fetch seller products
-    const sellerProducts = await Product.find({ seller: sellerId });
+    // 1. Fetch seller products (exclude soft-deleted ones)
+    const sellerProducts = await Product.find({ seller: sellerId, deletedAt: null });
     const sellerProductIds = sellerProducts.map((p) => p._id);
 
     // 2. Fetch orders containing seller's products
     const orders = await Order.find({ 'items.productId': { $in: sellerProductIds } });
 
+    // Fetch dynamic low stock threshold setting
+    const setting = await Setting.findOne({ key: 'lowStockThreshold' });
+    const threshold = setting ? Number(setting.value) : 5;
+
     // Stats calculations
     const productsCount = sellerProducts.length;
-    const lowStockCount = sellerProducts.filter((p) => p.stock < 5).length;
+    const lowStockCount = sellerProducts.filter((p) => p.stock > 0 && p.stock <= threshold).length;
     const ordersCount = orders.length;
 
     // Filter out cancelled orders for revenue calculation
@@ -124,6 +129,9 @@ class SellerService {
       recent: {
         orders: recentOrdersList,
         reviews: recentReviewsList,
+      },
+      settings: {
+        lowStockThreshold: threshold,
       },
     };
   }
