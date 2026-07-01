@@ -292,7 +292,7 @@ export class OrderService {
           select: 'name seller',
           populate: {
             path: 'seller',
-            select: 'fullName'
+            select: 'fullName storeName storeLogoUrl'
           }
         })
         .sort({ createdAt: -1 });
@@ -304,11 +304,28 @@ export class OrderService {
       // Find orders containing any of those product IDs
       return await Order.find({ 'items.productId': { $in: sellerProductIds } })
         .populate('userId', 'fullName email')
+        .populate({
+          path: 'items.productId',
+          select: 'name seller',
+          populate: {
+            path: 'seller',
+            select: 'fullName storeName storeLogoUrl'
+          }
+        })
         .sort({ createdAt: -1 });
     }
 
     // Customer / Collector
-    return await Order.find({ userId: new Types.ObjectId(userId) }).sort({ createdAt: -1 });
+    return await Order.find({ userId: new Types.ObjectId(userId) })
+      .populate({
+        path: 'items.productId',
+        select: 'name seller',
+        populate: {
+          path: 'seller',
+          select: 'fullName storeName storeLogoUrl'
+        }
+      })
+      .sort({ createdAt: -1 });
   }
 
   /**
@@ -328,6 +345,93 @@ export class OrderService {
       throw new ApiError(404, 'Order not found.', 'ORDER_NOT_FOUND');
     }
 
+    // 1. Resolve unique seller IDs for all products in this order
+    const productIds = order.items.map((item) => item.productId);
+    const productsInOrder = await Product.find({ _id: { $in: productIds } });
+    const sellerIds = new Set(productsInOrder.map((p) => p.seller.toString()));
+    const isMultiSeller = sellerIds.size > 1;
+
+    // 2. Perform Seller-specific validations and operations
+    if (requestingUser.role === 'seller') {
+      // Check if seller owns any products in this order
+      const sellerProductIds = await Product.find({
+        seller: new Types.ObjectId(requestingUser._id),
+      }).distinct('_id');
+      const sellerProductStrIds = sellerProductIds.map((id) => id.toString());
+
+      const ownsProduct = order.items.some((item) =>
+        sellerProductStrIds.includes(item.productId.toString())
+      );
+
+      if (!ownsProduct) {
+        throw new ApiError(403, 'Forbidden. You do not own any products in this order.', 'FORBIDDEN');
+      }
+
+      // If it's a multi-seller order:
+      if (isMultiSeller) {
+        // Sellers cannot advance status (confirmed, processing, shipped, delivered) on multi-seller orders
+        if (status !== 'cancelled') {
+          throw new ApiError(
+            403,
+            'Forbidden. This order contains products from multiple sellers and its status can only be advanced by an administrator.',
+            'FORBIDDEN'
+          );
+        }
+
+        // If the seller is cancelling: remove ONLY their items and recalculate totals
+        if (status === 'cancelled') {
+          const sellerItems = order.items.filter((item) =>
+            sellerProductStrIds.includes(item.productId.toString())
+          );
+          const otherItems = order.items.filter(
+            (item) => !sellerProductStrIds.includes(item.productId.toString())
+          );
+
+          if (otherItems.length > 0) {
+            // Replenish stock for the seller's items only
+            for (const item of sellerItems) {
+              await Product.findByIdAndUpdate(item.productId, {
+                $inc: { stock: item.quantity },
+              });
+            }
+
+            // Remove the items from the order
+            order.items = otherItems;
+
+            // Recalculate totals
+            const newSubtotal = otherItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            order.totals.subtotal = newSubtotal;
+            order.totals.tax = Math.round(newSubtotal * 0.1 * 100) / 100;
+            order.totals.total = Math.max(
+              0,
+              newSubtotal + order.totals.shipping + order.totals.tax - order.totals.discount
+            );
+
+            await order.save();
+
+            // Trigger notification email to customer
+            try {
+              const emailHtml = `
+                <div style="font-family: sans-serif; line-height: 1.5; color: #333;">
+                  <h2>Order Update</h2>
+                  <p>Dear Customer,</p>
+                  <p>Some items in your Order #${order._id.toString().substring(18).toUpperCase()} were cancelled by the studio partner.</p>
+                  <p>The remaining items are still active and being processed. Your new order total is <strong>$${order.totals.total.toFixed(2)}</strong>.</p>
+                  <p>Thank you for choosing CURIO.</p>
+                </div>
+              `;
+              await sendEmail(order.shippingAddress.email, `CURIO // Order Update #${order._id}`, emailHtml);
+            } catch (emailErr) {
+              console.error('[Email Error] Failed to send cancel portion notification:', emailErr);
+            }
+
+            return order;
+          }
+        }
+      }
+    }
+
+    // 3. Normal / Admin / Single-Seller Flow
     if (order.status === status) {
       return order;
     }
@@ -340,7 +444,7 @@ export class OrderService {
       order.paymentStatus = 'paid';
     }
 
-    // Handle inventory replenishment on cancellation
+    // Handle inventory replenishment on global cancellation
     if (status === 'cancelled' && previousStatus !== 'cancelled') {
       for (const item of order.items) {
         await Product.findByIdAndUpdate(item.productId, {
@@ -376,7 +480,7 @@ export class OrderService {
         path: 'items.productId',
         populate: {
           path: 'seller',
-          select: 'fullName email'
+          select: 'fullName email storeName storeLogoUrl'
         }
       });
     if (!order) {
