@@ -49,20 +49,24 @@ The project is structured as a TypeScript monorepo using npm workspaces, with a 
 
 ## 👥 Team Members
 
-### Shawky Ahmad Shawky — Frontend Developer & UI Designer
+### Shawky Ahmad Shawky — Full-Stack Developer
 **Module:** Authentication & Users
 
 | Area | What Was Built |
 |---|---|
+| **Auth Backend** | `auth.service.ts` — register, login, Google OAuth 2.0, phone OTP, email verification, password reset, token refresh with rotation |
+| **Auth API** | 11 endpoints: register, login, Google login, refresh, logout, verify-email, resend-verification, forgot-password, reset-password, change-password, phone OTP |
+| **User Model** | `user.model.ts` — Mongoose schema with roles (`customer`, `seller`, `admin`), email/phone, password hash, verification status |
+| **Users Module** | `user.service.ts` + `user.controller.ts` — profile CRUD (`GET /me`, `PATCH /me`, `DELETE /me`) |
+| **Middlewares** | `auth.middleware.ts` (JWT verification), `role.middleware.ts` (role guards), `rateLimit.middleware.ts`, `error.middleware.ts`, `validate.middleware.ts` |
+| **Wishlist** | Wishlist & Favorites backend + frontend integration on `CatalogPage.vue` |
+| **Auth UI** | Login, Register pages with route guards, OAuth redirect flows, and redirect history |
+| **Email Verification** | Full SMTP email verification flow (send + verify + resend) |
+| **User Profiles** | Profile management UI with multi-role system |
 | **Design System** | Global CSS custom properties (color palette, fonts, shadows, animations) in `style.css` |
-| **Authentication UI** | Login, Register pages with route guards and OAuth redirect flows |
-| **Email Verification** | SMTP email verification flow for user registration |
-| **User Profiles** | User profile management and multi-role system (Customer, Seller, Admin) |
-| **Wishlist** | Wishlist & Favorites with `CatalogPage.vue` integration |
 | **Toast System** | Global `toast.store.ts` + `BaseToastContainer.vue` for notifications |
 | **Axios Layer** | `http.ts` interceptors for token refresh, 401 handling, and credential errors |
 | **Monorepo Setup** | npm workspaces root `package.json`, `.gitignore`, unified lockfile |
-| **Iconography** | Replaced all raw/emoji icons with Lucide Vue SVG components |
 
 👉 [Full Documentation](docs/shawky-ahmad-shawky/README.md)
 
