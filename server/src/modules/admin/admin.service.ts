@@ -610,6 +610,7 @@ class AdminService {
       freeShippingThreshold: map.freeShippingThreshold !== undefined ? map.freeShippingThreshold : 100,
       shippingCost: map.shippingCost !== undefined ? map.shippingCost : 10,
       contactEmail: map.contactEmail !== undefined ? map.contactEmail : 'support@curio.com',
+      lowStockThreshold: map.lowStockThreshold !== undefined ? map.lowStockThreshold : 5,
     };
   }
 
@@ -617,13 +618,19 @@ class AdminService {
    * Update settings fields in bulk.
    */
   public async updateSettings(payload: Record<string, any>) {
-    const keys = ['taxRate', 'freeShippingThreshold', 'shippingCost', 'contactEmail'];
+    const keys = ['taxRate', 'freeShippingThreshold', 'shippingCost', 'contactEmail', 'lowStockThreshold'];
     for (const key of keys) {
       if (payload[key] !== undefined) {
         let val = payload[key];
         if (key === 'taxRate' || key === 'freeShippingThreshold' || key === 'shippingCost') {
           val = Number(val);
           if (isNaN(val) || val < 0) continue;
+        }
+        if (key === 'lowStockThreshold') {
+          val = Number(val);
+          if (isNaN(val) || !Number.isInteger(val) || val < 1) {
+            throw new ApiError(400, 'Low stock threshold must be a positive integer greater than or equal to 1.', 'VALIDATION_ERROR');
+          }
         }
         await Setting.findOneAndUpdate(
           { key },
