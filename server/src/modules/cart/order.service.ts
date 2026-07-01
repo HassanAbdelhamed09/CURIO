@@ -280,43 +280,73 @@ export class OrderService {
     return order;
   }
 
-  /**
-   * Retrieves order history based on user role (Customers see their own, Sellers see their products, Admins see all).
-   */
-  public async getOrdersForRole(userId: string, role: string): Promise<IOrder[]> {
-    if (role === 'admin') {
-      return await Order.find({})
-        .populate('userId', 'fullName email')
-        .populate({
-          path: 'items.productId',
-          select: 'name seller',
-          populate: {
-            path: 'seller',
-            select: 'fullName storeName storeLogoUrl'
-          }
-        })
-        .sort({ createdAt: -1 });
-    }
+  public async getOrdersForRole(
+    userId: string,
+    role: string,
+    page?: number,
+    limit: number = 10,
+    search?: string,
+    status?: string
+  ): Promise<any> {
+    const query: Record<string, any> = {};
 
     if (role === 'seller') {
-      // Find all product IDs owned by this seller
       const sellerProductIds = await Product.find({ seller: new Types.ObjectId(userId) }).distinct('_id');
-      // Find orders containing any of those product IDs
-      return await Order.find({ 'items.productId': { $in: sellerProductIds } })
-        .populate('userId', 'fullName email')
-        .populate({
-          path: 'items.productId',
-          select: 'name seller',
-          populate: {
-            path: 'seller',
-            select: 'fullName storeName storeLogoUrl'
-          }
-        })
-        .sort({ createdAt: -1 });
+      query['items.productId'] = { $in: sellerProductIds };
+    } else if (role !== 'admin') {
+      query.userId = new Types.ObjectId(userId);
     }
 
-    // Customer / Collector
-    return await Order.find({ userId: new Types.ObjectId(userId) })
+    // Apply filters before pagination/statistics
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    if (search) {
+      const searchRegex = { $regex: search, $options: 'i' };
+      const orConditions: any[] = [
+        { 'shippingAddress.fullName': searchRegex },
+        { 'shippingAddress.email': searchRegex }
+      ];
+      if (Types.ObjectId.isValid(search)) {
+        orConditions.push({ _id: new Types.ObjectId(search) });
+      }
+      query.$or = orConditions;
+    }
+
+    // 1. Calculate statistics matching the core role query (exclude page status & search filter to keep counts global for dashboard)
+    const statsQuery = { ...query };
+    delete statsQuery.status;
+    delete statsQuery.$or;
+
+    const statusCounts = await Order.aggregate([
+      { $match: statsQuery },
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+
+    const stats = {
+      total: 0,
+      pending: 0,
+      confirmed: 0,
+      processing: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0
+    };
+
+    statusCounts.forEach((sc) => {
+      if (sc._id === 'pending') stats.pending = sc.count;
+      else if (sc._id === 'confirmed') stats.confirmed = sc.count;
+      else if (sc._id === 'processing') stats.processing = sc.count;
+      else if (sc._id === 'shipped') stats.shipped = sc.count;
+      else if (sc._id === 'delivered') stats.delivered = sc.count;
+      else if (sc._id === 'cancelled') stats.cancelled = sc.count;
+    });
+    stats.total = stats.pending + stats.confirmed + stats.processing + stats.shipped + stats.delivered + stats.cancelled;
+
+    // 2. Perform query
+    let ordersQuery = Order.find(query)
+      .populate('userId', 'fullName email')
       .populate({
         path: 'items.productId',
         select: 'name seller',
@@ -326,6 +356,28 @@ export class OrderService {
         }
       })
       .sort({ createdAt: -1 });
+
+    if (page !== undefined) {
+      const skip = (page - 1) * limit;
+      ordersQuery = ordersQuery.skip(skip).limit(limit);
+    }
+
+    const orders = await ordersQuery;
+
+    if (page !== undefined) {
+      const total = await Order.countDocuments(query);
+      const pages = Math.ceil(total / limit);
+      return {
+        orders,
+        total,
+        pages,
+        page,
+        limit,
+        stats
+      };
+    }
+
+    return orders;
   }
 
   /**

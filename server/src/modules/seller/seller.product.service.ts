@@ -57,6 +57,28 @@ export class SellerProductService {
     const total = await Product.countDocuments(query);
     const pages = Math.ceil(total / limit);
 
+    // Calculate seller product statistics
+    const statsQuery = { ...query };
+    delete statsQuery.status;
+    const statusCounts = await Product.aggregate([
+      { $match: statsQuery },
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+
+    const stats = {
+      total: 0,
+      active: 0,
+      draft: 0,
+      archived: 0
+    };
+
+    statusCounts.forEach((sc) => {
+      if (sc._id === 'active') stats.active = sc.count;
+      else if (sc._id === 'draft') stats.draft = sc.count;
+      else if (sc._id === 'archived') stats.archived = sc.count;
+    });
+    stats.total = stats.active + stats.draft + stats.archived;
+
     const products = await Product.find(query)
       .populate('categoryId', 'name slug imageUrl')
       .skip((page - 1) * limit)
@@ -89,6 +111,7 @@ export class SellerProductService {
         total,
         pages,
       },
+      stats,
     };
   }
 

@@ -212,7 +212,7 @@ class AdminService {
       ];
     }
 
-    const [users, total] = await Promise.all([
+    const [users, total, totalCustomers, activeCustomers, totalSellers, activeSellers] = await Promise.all([
       User.find(filter)
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
@@ -220,6 +220,10 @@ class AdminService {
         .select('-passwordHash')
         .lean(),
       User.countDocuments(filter),
+      User.countDocuments({ role: 'customer', status: { $ne: 'deleted' } }),
+      User.countDocuments({ role: 'customer', status: 'active' }),
+      User.countDocuments({ role: 'seller', status: { $ne: 'deleted' } }),
+      User.countDocuments({ role: 'seller', status: 'active' }),
     ]);
 
     return {
@@ -227,6 +231,12 @@ class AdminService {
       total,
       pages: Math.ceil(total / limit),
       page,
+      stats: {
+        totalCustomers,
+        activeCustomers,
+        totalSellers,
+        activeSellers,
+      },
     };
   }
 

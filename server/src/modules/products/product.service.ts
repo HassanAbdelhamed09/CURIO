@@ -18,7 +18,7 @@ export class ProductService {
   /**
    * Returns a paginated, filtered list of products.
    */
-  public async getAll(filters: ProductFilters = {}): Promise<IProduct[]> {
+  public async getAll(filters: ProductFilters & { page?: number; limit?: number } = {}): Promise<any> {
     const query: Record<string, any> = {};
 
     // Always exclude soft-deleted items
@@ -70,12 +70,45 @@ export class ProductService {
       }
     }
 
-    const products = await Product.find(query)
+    // 1. Calculate statistics
+    const statsQuery = { ...query };
+    delete statsQuery.status;
+    const statusCounts = await Product.aggregate([
+      { $match: statsQuery },
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+
+    const stats = {
+      total: 0,
+      active: 0,
+      draft: 0,
+      archived: 0
+    };
+
+    statusCounts.forEach((sc) => {
+      if (sc._id === 'active') stats.active = sc.count;
+      else if (sc._id === 'draft') stats.draft = sc.count;
+      else if (sc._id === 'archived') stats.archived = sc.count;
+    });
+    stats.total = stats.active + stats.draft + stats.archived;
+
+    // 2. Perform query
+    const page = filters.page ? Number(filters.page) : undefined;
+    const limit = filters.limit ? Number(filters.limit) : 10;
+
+    let productsQuery = Product.find(query)
       .populate('categoryId', 'name slug imageUrl')
       .populate('seller', 'fullName avatarUrl storeName storeDescription storeLogoUrl')
       .sort({ createdAt: -1 });
 
-    return products.map(product => {
+    if (page !== undefined) {
+      const skip = (page - 1) * limit;
+      productsQuery = productsQuery.skip(skip).limit(limit);
+    }
+
+    const products = await productsQuery;
+
+    const mappedProducts = products.map(product => {
       const discount = product.discount || 0;
       const price = product.price;
       const effectivePrice = Math.round(price * (1 - discount / 100) * 100) / 100;
@@ -92,6 +125,21 @@ export class ProductService {
       productJson.stockStatus = stockStatus;
       return productJson as any;
     });
+
+    if (page !== undefined) {
+      const total = await Product.countDocuments(query);
+      const pages = Math.ceil(total / limit);
+      return {
+        products: mappedProducts,
+        total,
+        pages,
+        page,
+        limit,
+        stats
+      };
+    }
+
+    return mappedProducts;
   }
 
   /**
