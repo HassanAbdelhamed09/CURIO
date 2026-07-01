@@ -86,6 +86,8 @@ export interface SellerRegistryItem {
   status: 'active' | 'blocked' | 'deleted';
   createdAt: string;
   productsCount: number;
+  storeName?: string;
+  storeDescription?: string;
 }
 
 export interface PaginatedSellersData {

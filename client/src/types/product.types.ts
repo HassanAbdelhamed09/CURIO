@@ -24,6 +24,10 @@ export interface Product {
     _id: string;
     fullName: string;
     avatarUrl?: string;
+    storeName?: string;
+    storeDescription?: string;
+    storeLogoUrl?: string;
+    storePhone?: string;
   };
   status: ProductStatus;
   averageRating: number;

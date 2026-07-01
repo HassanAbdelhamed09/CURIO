@@ -159,7 +159,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'profile',
         name: 'seller-profile',
-        component: () => import('../modules/seller/pages/SellerDashboardPage.vue'),
+        component: () => import('../modules/seller/pages/SellerProfilePage.vue'),
       },
     ],
   },
