@@ -123,6 +123,7 @@ The project is structured as a TypeScript monorepo using npm workspaces, with a 
 | **Email Notifications** | Order confirmation emails on payment + status update emails on every transition |
 | **Role-Based History** | `GET /api/orders` returns customer-specific, seller-specific, or all orders based on role |
 | **Order Schema** | Extended with `stripeSessionId` and `paymentStatus` fields |
+| **Stripe Coupons & Zero-Total** | Dynamic Stripe Coupon generation + zero-total ($0.00) free checkout local bypass |
 
 👉 [Full Documentation](docs/hassan-muhammad/README.md)
 
@@ -147,6 +148,9 @@ The project is structured as a TypeScript monorepo using npm workspaces, with a 
 | **Dashboard Analytics** | Global stats aggregation pipeline (filter-independent) on all admin/seller listing pages |
 | **Backend Pagination** | Server-side pagination via `BasePagination.vue` across admin, seller, and catalog pages |
 | **Seller Backend** | `seller.service.ts`, `seller.product.service.ts`, `seller.review.service.ts` + controllers and routes |
+| **Newsletter Marketing** | Footer newsletter subscription form, DB record logging, and SMTP HTML welcome dispatch (Option A) |
+| **Social Media Sharing** | Clean responsive sharing component for WhatsApp, X (Twitter), Facebook, and clipboard copy (Option B) |
+| **Centralized Order Alerts** | Multi-recipient notifications: Customer (receipt), Seller (isolated items + address), and Admins (system log) |
 
 👉 [Full Documentation](docs/hassan-abdelhamed/README.md)
 
