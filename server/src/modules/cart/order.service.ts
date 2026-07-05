@@ -102,12 +102,13 @@ export class OrderService {
       if (order.promoCode) {
         await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
       }
-      // Send confirmation email
+      // Send confirmation email (non-blocking)
       try {
         const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
-        await sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml);
-      } catch (emailErr) {
-        console.error('[Email Error] Failed to send order confirmation email:', emailErr);
+        sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml)
+          .catch((emailErr) => console.error('[Email Error] Failed to send order confirmation email:', emailErr));
+      } catch (err) {
+        console.error('[Email Error] Error preparing order confirmation template:', err);
       }
       return { order };
     }
@@ -207,12 +208,13 @@ export class OrderService {
       await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
     }
 
-    // Send confirmation email
+    // Send confirmation email (non-blocking)
     try {
       const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
-      await sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml);
-    } catch (emailErr) {
-      console.error('[Email Error] Failed to send confirmation email:', emailErr);
+      sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml)
+        .catch((emailErr) => console.error('[Email Error] Failed to send confirmation email:', emailErr));
+    } catch (err) {
+      console.error('[Email Error] Error preparing confirmation template:', err);
     }
 
     return { order };
@@ -267,12 +269,13 @@ export class OrderService {
         await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
       }
 
-      // Send confirmation email
+      // Send confirmation email (non-blocking)
       try {
         const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
-        await sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml);
-      } catch (emailErr) {
-        console.error('[Email Error] Failed to send confirmation email:', emailErr);
+        sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml)
+          .catch((emailErr) => console.error('[Email Error] Failed to send confirmation email:', emailErr));
+      } catch (err) {
+        console.error('[Email Error] Error preparing confirmation template:', err);
       }
     } else {
       order.paymentStatus = 'failed';
@@ -464,7 +467,7 @@ export class OrderService {
 
             await order.save();
 
-            // Trigger notification email to customer
+            // Trigger notification email to customer (non-blocking)
             try {
               const emailHtml = `
                 <div style="font-family: sans-serif; line-height: 1.5; color: #333;">
@@ -475,9 +478,10 @@ export class OrderService {
                   <p>Thank you for choosing CURIO.</p>
                 </div>
               `;
-              await sendEmail(order.shippingAddress.email, `CURIO // Order Update #${order._id}`, emailHtml);
-            } catch (emailErr) {
-              console.error('[Email Error] Failed to send cancel portion notification:', emailErr);
+              sendEmail(order.shippingAddress.email, `CURIO // Order Update #${order._id}`, emailHtml)
+                .catch((emailErr) => console.error('[Email Error] Failed to send cancel portion notification:', emailErr));
+            } catch (err) {
+              console.error('[Email Error] Error preparing cancel portion template:', err);
             }
 
             return order;
@@ -510,12 +514,13 @@ export class OrderService {
 
     await order.save();
 
-    // Trigger status update email
+    // Trigger status update email (non-blocking)
     try {
       const emailHtml = getOrderStatusUpdateTemplate(order, env.CLIENT_URL);
-      await sendEmail(order.shippingAddress.email, `CURIO // Order status advanced to: ${status}`, emailHtml);
-    } catch (emailErr) {
-      console.error('[Email Error] Failed to send status update email:', emailErr);
+      sendEmail(order.shippingAddress.email, `CURIO // Order status advanced to: ${status}`, emailHtml)
+        .catch((emailErr) => console.error('[Email Error] Failed to send status update email:', emailErr));
+    } catch (err) {
+      console.error('[Email Error] Error preparing status update template:', err);
     }
 
     return order;

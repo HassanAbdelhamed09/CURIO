@@ -24,12 +24,13 @@ export class MarketingService {
     // 2. Create the subscription record
     await Newsletter.create({ email: formattedEmail });
 
-    // 3. Dispatch the welcome HTML email template
+    // 3. Dispatch the welcome HTML email template (non-blocking)
     try {
       const emailHtml = getNewsletterWelcomeTemplate(formattedEmail, env.CLIENT_URL);
-      await sendEmail(formattedEmail, 'Welcome to CURIO // Curation Newsletter', emailHtml);
-    } catch (emailErr) {
-      console.error('[Email Error] Failed to send newsletter welcome email:', emailErr);
+      sendEmail(formattedEmail, 'Welcome to CURIO // Curation Newsletter', emailHtml)
+        .catch(emailErr => console.error('[Email Error] Failed to send newsletter welcome email:', emailErr));
+    } catch (err) {
+      console.error('[Email Error] Error preparing newsletter template:', err);
     }
   }
 }
