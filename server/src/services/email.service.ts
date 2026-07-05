@@ -19,6 +19,7 @@ const createTransporter = (): nodemailer.Transporter => {
     host: env.EMAIL_HOST,
     port: env.EMAIL_PORT,
     secure: env.EMAIL_PORT === 465,
+    family: 4, // Force IPv4 to prevent ENETUNREACH errors on cloud hosting (like Railway) lacking IPv6 support
     pool: env.EMAIL_HOST !== 'smtp.gmail.com',             // Disable pooling for Gmail to prevent connection drops
     maxConnections: 5,      // Limit simultaneous connections
     maxMessages: 100,       // Max messages per connection
