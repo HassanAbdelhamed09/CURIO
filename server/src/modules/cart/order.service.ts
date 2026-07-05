@@ -3,11 +3,17 @@ import Stripe from 'stripe';
 import { ApiError } from '../../utils/ApiError.js';
 import { Order, IOrder, IShippingAddress } from './order.model.js';
 import { Product } from '../products/product.model.js';
+import { User } from '../users/user.model.js';
 import { cartService } from './cart.service.js';
 import { PromoCode } from './promo.model.js';
 import { env } from '../../config/env.js';
 import { sendEmail } from '../../services/email.service.js';
-import { getOrderConfirmationTemplate, getOrderStatusUpdateTemplate } from '../../utils/emailTemplates.js';
+import {
+  getOrderConfirmationTemplate,
+  getOrderStatusUpdateTemplate,
+  getSellerOrderAlertTemplate,
+  getAdminOrderAlertTemplate,
+} from '../../utils/emailTemplates.js';
 
 const stripe = env.STRIPE_SECRET_KEY ? new Stripe(env.STRIPE_SECRET_KEY) : null;
 
@@ -102,14 +108,10 @@ export class OrderService {
       if (order.promoCode) {
         await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
       }
-      // Send confirmation email (non-blocking)
-      try {
-        const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
-        sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml)
-          .catch((emailErr) => console.error('[Email Error] Failed to send order confirmation email:', emailErr));
-      } catch (err) {
-        console.error('[Email Error] Error preparing order confirmation template:', err);
-      }
+      // Dispatch order notifications asynchronously (non-blocking)
+      this.sendOrderNotifications(order).catch((err) =>
+        console.error('[Email Error] Failed to dispatch order notifications:', err)
+      );
       return { order };
     }
 
@@ -208,14 +210,10 @@ export class OrderService {
       await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
     }
 
-    // Send confirmation email (non-blocking)
-    try {
-      const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
-      sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml)
-        .catch((emailErr) => console.error('[Email Error] Failed to send confirmation email:', emailErr));
-    } catch (err) {
-      console.error('[Email Error] Error preparing confirmation template:', err);
-    }
+    // Dispatch order notifications asynchronously (non-blocking)
+    this.sendOrderNotifications(order).catch((err) =>
+      console.error('[Email Error] Failed to dispatch order notifications:', err)
+    );
 
     return { order };
   }
@@ -269,14 +267,10 @@ export class OrderService {
         await PromoCode.findOneAndUpdate({ code: order.promoCode }, { $inc: { usedCount: 1 } });
       }
 
-      // Send confirmation email (non-blocking)
-      try {
-        const emailHtml = getOrderConfirmationTemplate(order, env.CLIENT_URL);
-        sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id}`, emailHtml)
-          .catch((emailErr) => console.error('[Email Error] Failed to send confirmation email:', emailErr));
-      } catch (err) {
-        console.error('[Email Error] Error preparing confirmation template:', err);
-      }
+      // Dispatch order notifications asynchronously (non-blocking)
+      this.sendOrderNotifications(order).catch((err) =>
+        console.error('[Email Error] Failed to dispatch order notifications:', err)
+      );
     } else {
       order.paymentStatus = 'failed';
       await order.save();
@@ -569,6 +563,76 @@ export class OrderService {
     }
 
     return order;
+  }
+
+  /**
+   * Dispatches custom order notification emails to the customer, the admins, and the respective sellers.
+   * Executed asynchronously (non-blocking) in the background.
+   */
+  private async sendOrderNotifications(order: IOrder): Promise<void> {
+    try {
+      const clientUrl = env.CLIENT_URL;
+
+      // 1. Send Customer Email
+      try {
+        const customerHtml = getOrderConfirmationTemplate(order, clientUrl);
+        await sendEmail(order.shippingAddress.email, `CURIO // Order Confirmation #${order._id.toString().substring(18).toUpperCase()}`, customerHtml);
+      } catch (err) {
+        console.error('[Email Error] Failed to send customer order confirmation:', err);
+      }
+
+      // 2. Send Admin Email(s)
+      try {
+        const admins = await User.find({ role: 'admin' });
+        const adminEmails = admins.length > 0 ? admins.map(a => a.email) : [env.EMAIL_USER];
+        const adminHtml = getAdminOrderAlertTemplate(order, clientUrl);
+        
+        for (const email of adminEmails) {
+          if (email) {
+            await sendEmail(email, `SYSTEM ALERT // New Order Received #${order._id.toString().substring(18).toUpperCase()}`, adminHtml);
+          }
+        }
+      } catch (err) {
+        console.error('[Email Error] Failed to send admin order notifications:', err);
+      }
+
+      // 3. Send Seller Email(s)
+      try {
+        // Map order items to their products to find the sellers
+        const sellerItemsMap: Record<string, any[]> = {};
+        
+        for (const item of order.items) {
+          const product = await Product.findById(item.productId);
+          if (product && product.seller) {
+            const sellerIdStr = product.seller.toString();
+            if (!sellerItemsMap[sellerIdStr]) {
+              sellerItemsMap[sellerIdStr] = [];
+            }
+            sellerItemsMap[sellerIdStr].push({
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image
+            });
+          }
+        }
+
+        // Send a custom alert to each unique seller
+        for (const sellerIdStr of Object.keys(sellerItemsMap)) {
+          const seller = await User.findById(sellerIdStr);
+          if (seller && seller.email) {
+            const sellerItems = sellerItemsMap[sellerIdStr];
+            const sellerHtml = getSellerOrderAlertTemplate(order, sellerItems, clientUrl, seller.storeName || 'Your Store');
+            await sendEmail(seller.email, `NEW SALE ALERT // Order #${order._id.toString().substring(18).toUpperCase()}`, sellerHtml);
+          }
+        }
+      } catch (err) {
+        console.error('[Email Error] Failed to send seller order notifications:', err);
+      }
+
+    } catch (globalErr) {
+      console.error('[Email Error] Global order notification dispatch error:', globalErr);
+    }
   }
 }
 

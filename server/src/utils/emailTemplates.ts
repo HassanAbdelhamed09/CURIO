@@ -281,3 +281,230 @@ export const getNewsletterWelcomeTemplate = (email: string, clientUrl: string): 
     </html>
   `;
 };
+
+/**
+ * Generates the HTML content for a seller sale alert email.
+ */
+export const getSellerOrderAlertTemplate = (
+  order: IOrder,
+  sellerItems: any[],
+  clientUrl: string,
+  storeName: string
+): string => {
+  const itemsHtml = sellerItems
+    .map(
+      (item) => `
+    <tr style="border-bottom: 1px solid #e5e7eb;">
+      <td style="padding: 12px 0; font-family: 'Outfit', 'Inter', sans-serif; font-size: 14px; color: #1f2937;">
+        ${item.name} <span style="color: #6b7280; font-size: 12px;">x${item.quantity}</span>
+      </td>
+      <td style="padding: 12px 0; text-align: right; font-family: 'Outfit', 'Inter', sans-serif; font-size: 14px; color: #1f2937; font-weight: 600;">
+        $${(item.price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const sellerTotal = sellerItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>CURIO // New Sale Alert</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
+      </style>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #fafaf9; -webkit-font-smoothing: antialiased;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fafaf9; padding: 40px 20px;">
+        <tr>
+          <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border: 2px solid #e7e5e4; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+              <!-- Header -->
+              <tr>
+                <td style="background-color: #1c1917; padding: 40px; text-align: center;">
+                  <span style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; color: #10b981; letter-spacing: 0.2em; text-transform: uppercase; display: block; margin-bottom: 8px;">NEW ACQUISITION</span>
+                  <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; color: #ffffff; margin: 0; font-style: italic;">You have made a sale.</h1>
+                </td>
+              </tr>
+              <!-- Body -->
+              <tr>
+                <td style="padding: 40px;">
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 16px; line-height: 1.6; color: #44403c; margin: 0 0 24px 0;">
+                    Hello ${storeName},
+                  </p>
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #57534e; margin: 0 0 32px 0;">
+                    Congratulations! An order has been placed for items in your collection. Please prepare the following curations for packaging and fulfillment.
+                  </p>
+
+                  <!-- Items to Ship -->
+                  <h3 style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: #1c1917; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #e7e5e4; padding-bottom: 8px; margin: 0 0 16px 0;">Acquired Items</h3>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 32px;">
+                    ${itemsHtml}
+                    <tr>
+                      <td style="padding: 16px 0 0 0; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700; color: #1c1917;">Total Revenue</td>
+                      <td style="padding: 16px 0 0 0; text-align: right; font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #10b981;">$${sellerTotal.toFixed(2)}</td>
+                    </tr>
+                  </table>
+
+                  <!-- Shipping Destination -->
+                  <h3 style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: #1c1917; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #e7e5e4; padding-bottom: 8px; margin: 0 0 16px 0;">Shipping Address</h3>
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 14px; line-height: 1.5; color: #57534e; margin: 0 0 32px 0;">
+                    <strong>${order.shippingAddress.fullName}</strong><br>
+                    ${order.shippingAddress.address}<br>
+                    ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}<br>
+                    ${order.shippingAddress.country}<br>
+                    Phone: ${order.shippingAddress.phone}
+                  </p>
+
+                  <!-- Call to Action -->
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px;">
+                    <tr>
+                      <td align="center">
+                        <a href="${clientUrl}/dashboard" style="background-color: #1c1917; color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 8px; display: inline-block; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">Manage Sales Dashboard</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #fafaf9; border-top: 1px solid #e7e5e4; padding: 30px; text-align: center;">
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 12px; color: #a8a29e; margin: 0;">
+                    CURIO Partner Network // Design Atelier Registry<br>
+                    This is an automated notification. Please do not reply directly.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * Generates the HTML content for an admin order alert email.
+ */
+export const getAdminOrderAlertTemplate = (order: IOrder, clientUrl: string): string => {
+  const itemsHtml = order.items
+    .map(
+      (item) => `
+    <tr style="border-bottom: 1px solid #e5e7eb;">
+      <td style="padding: 12px 0; font-family: 'Outfit', 'Inter', sans-serif; font-size: 14px; color: #1f2937;">
+        ${item.name} <span style="color: #6b7280; font-size: 12px;">x${item.quantity}</span>
+      </td>
+      <td style="padding: 12px 0; text-align: right; font-family: 'Outfit', 'Inter', sans-serif; font-size: 14px; color: #1f2937; font-weight: 600;">
+        $${(item.price * item.quantity).toFixed(2)}
+      </td>
+    </tr>
+  `
+    )
+    .join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>CURIO // System Order Notification</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
+      </style>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #fafaf9; -webkit-font-smoothing: antialiased;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fafaf9; padding: 40px 20px;">
+        <tr>
+          <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border: 2px solid #e7e5e4; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+              <!-- Header -->
+              <tr>
+                <td style="background-color: #1c1917; padding: 40px; text-align: center;">
+                  <span style="font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; color: #f59e0b; letter-spacing: 0.2em; text-transform: uppercase; display: block; margin-bottom: 8px;">SYSTEM PLATFORM ALERT</span>
+                  <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; color: #ffffff; margin: 0; font-style: italic;">New Transaction Registered.</h1>
+                </td>
+              </tr>
+              <!-- Body -->
+              <tr>
+                <td style="padding: 40px;">
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 16px; line-height: 1.6; color: #44403c; margin: 0 0 24px 0;">
+                    Hello Administrator,
+                  </p>
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #57534e; margin: 0 0 32px 0;">
+                    A new transaction has been executed. Details of Order #${order._id.toString().toUpperCase()} are listed below:
+                  </p>
+
+                  <!-- Buyer Info -->
+                  <h3 style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: #1c1917; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #e7e5e4; padding-bottom: 8px; margin: 0 0 16px 0;">Buyer Details</h3>
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 14px; line-height: 1.5; color: #57534e; margin: 0 0 32px 0;">
+                    Name: ${order.shippingAddress.fullName}<br>
+                    Email: ${order.shippingAddress.email}<br>
+                    Payment Method: ${order.paymentMethod.toUpperCase()}<br>
+                    Payment Status: ${order.paymentStatus.toUpperCase()}
+                  </p>
+
+                  <!-- Order Summary -->
+                  <h3 style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: #1c1917; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #e7e5e4; padding-bottom: 8px; margin: 0 0 16px 0;">Transaction Summary</h3>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 32px;">
+                    ${itemsHtml}
+                    <!-- Financials -->
+                    <tr>
+                      <td style="padding: 16px 0 8px 0; font-family: 'Outfit', sans-serif; font-size: 14px; color: #57534e;">Subtotal</td>
+                      <td style="padding: 16px 0 8px 0; text-align: right; font-family: 'Outfit', sans-serif; font-size: 14px; color: #1c1917; font-weight: 600;">$${order.totals.subtotal.toFixed(2)}</td>
+                    </tr>
+                    ${
+                      order.totals.discount > 0
+                        ? `
+                    <tr>
+                      <td style="padding: 8px 0; font-family: 'Outfit', sans-serif; font-size: 14px; color: #10b981;">Atelier Discount (${order.promoCode})</td>
+                      <td style="padding: 8px 0; text-align: right; font-family: 'Outfit', sans-serif; font-size: 14px; color: #10b981; font-weight: 600;">-$${order.totals.discount.toFixed(2)}</td>
+                    </tr>
+                    `
+                        : ''
+                    }
+                    <tr>
+                      <td style="padding: 8px 0; font-family: 'Outfit', sans-serif; font-size: 14px; color: #57534e;">Shipping</td>
+                      <td style="padding: 8px 0; text-align: right; font-family: 'Outfit', sans-serif; font-size: 14px; color: #1c1917; font-weight: 600;">$${order.totals.shipping.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; font-family: 'Outfit', sans-serif; font-size: 14px; color: #57534e;">Tax</td>
+                      <td style="padding: 8px 0; text-align: right; font-family: 'Outfit', sans-serif; font-size: 14px; color: #1c1917; font-weight: 600;">$${order.totals.tax.toFixed(2)}</td>
+                    </tr>
+                    <tr style="border-top: 2px dashed #e7e5e4;">
+                      <td style="padding: 16px 0 0 0; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700; color: #1c1917;">Grand Total</td>
+                      <td style="padding: 16px 0 0 0; text-align: right; font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #f59e0b;">$${order.totals.total.toFixed(2)}</td>
+                    </tr>
+                  </table>
+
+                  <!-- Call to Action -->
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 20px;">
+                    <tr>
+                      <td align="center">
+                        <a href="${clientUrl}/admin" style="background-color: #1c1917; color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 8px; display: inline-block; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">Open Admin Dashboard</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #fafaf9; border-top: 1px solid #e7e5e4; padding: 30px; text-align: center;">
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 12px; color: #a8a29e; margin: 0;">
+                    CURIO Admin Console // System Alert Notification Registry<br>
+                    This is an automated notification. Please do not reply directly.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+};
