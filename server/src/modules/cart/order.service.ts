@@ -112,8 +112,8 @@ export class OrderService {
       return { order };
     }
 
-    // 6. Generate Stripe session if Stripe is configured and payment method is card
-    if (stripe && paymentMethod === 'card') {
+    // 6. Generate Stripe session if Stripe is configured, payment method is card, and order total is greater than 0
+    if (stripe && paymentMethod === 'card' && totals.total > 0) {
       try {
         const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = orderItems.map((item) => {
           return {
@@ -159,19 +159,17 @@ export class OrderService {
           });
         }
 
-        // Add discount as a negative line item if applicable
+        let discounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined = undefined;
+
+        // Apply discount using a Stripe Coupon instead of a negative line item
         if (totals.discount > 0) {
-          lineItems.push({
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: `Discount (${order.promoCode || 'PROMO'})`,
-                images: [],
-              },
-              unit_amount: -Math.round(totals.discount * 100),
-            },
-            quantity: 1,
+          const coupon = await stripe.coupons.create({
+            amount_off: Math.round(totals.discount * 100),
+            currency: 'usd',
+            duration: 'once',
+            name: `Promo Code: ${order.promoCode || 'PROMO'}`,
           });
+          discounts = [{ coupon: coupon.id }];
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -182,6 +180,7 @@ export class OrderService {
           cancel_url: `${env.CLIENT_URL}/checkout?cancelled=true`,
           client_reference_id: order._id.toString(),
           customer_email: shippingAddress.email,
+          ...(discounts ? { discounts } : {}),
         });
 
         order.stripeSessionId = session.id;
