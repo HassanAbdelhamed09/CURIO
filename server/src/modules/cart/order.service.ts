@@ -189,7 +189,11 @@ export class OrderService {
         return { order, checkoutUrl: session.url || undefined };
       } catch (err: any) {
         console.error('[Stripe Error] Failed to create checkout session:', err);
-        // Fallback to sandbox if stripe fails or has invalid keys during local testing
+        throw new ApiError(
+          502,
+          'Payment gateway communication failed. Please try again or select Cash on Delivery.',
+          'PAYMENT_GATEWAY_ERROR'
+        );
       }
     }
 
