@@ -217,3 +217,67 @@ export const getOrderStatusUpdateTemplate = (order: IOrder, clientUrl: string): 
     </html>
   `;
 };
+
+/**
+ * Generates HTML for the newsletter welcome email.
+ */
+export const getNewsletterWelcomeTemplate = (email: string, clientUrl: string): string => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Welcome to the CURIO Newsletter</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #fafaf9; color: #1c1917; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fafaf9; padding: 40px 20px;">
+        <tr>
+          <td align="center">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border: 2px solid #e7e5e4; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+              <!-- Header Brand Banner -->
+              <tr>
+                <td style="background-color: #faf8f5; border-bottom: 2px solid #e7e5e4; padding: 40px 30px; text-align: center;">
+                  <span style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; color: #1c1917; letter-spacing: -0.04em; margin: 0;">curio<span style="color: #ff6b35;">.</span></span>
+                </td>
+              </tr>
+              <!-- Body Content -->
+              <tr>
+                <td style="padding: 40px 30px;">
+                  <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; color: #1c1917; margin: 0 0 16px 0; letter-spacing: -0.02em;">Welcome to the Curation Circle</h2>
+                  
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #44403c; margin: 0 0 24px 0;">
+                    Hello,<br><br>
+                    Thank you for subscribing to the <strong>CURIO Newsletter</strong>. You are now part of our exclusive curation circle, dedicated to beautiful accessories, premium design, and unique objects.
+                  </p>
+                  
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #44403c; margin: 0 0 32px 0;">
+                    As a subscriber, you will be the first to receive updates on new catalog arrivals, seller additions, and exclusive promotional codes.
+                  </p>
+
+                  <!-- Call to Action -->
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0;">
+                    <tr>
+                      <td align="center">
+                        <a href="${clientUrl}" style="background-color: #ff6b35; color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; padding: 16px 32px; border-radius: 99px; display: inline-block; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 4px 6px rgba(255,107,53,0.15);">Explore Latest Curation</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #fafaf9; border-top: 1px solid #e7e5e4; padding: 30px; text-align: center;">
+                  <p style="font-family: 'Outfit', sans-serif; font-size: 12px; color: #a8a29e; margin: 0;">
+                    CURIO Inc. // Curated Marketplace & Design Atelier<br>
+                    You received this email because you subscribed to curio.com updates.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+};

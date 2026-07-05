@@ -96,6 +96,32 @@ const handleAddToCart = async () => {
     // Already handled by toast in store
   }
 };
+
+const copied = ref(false);
+
+const shareLinks = computed(() => {
+  if (!product.value) return { whatsapp: '', twitter: '', facebook: '' };
+  const encodedUrl = encodeURIComponent(window.location.href);
+  const encodedText = encodeURIComponent(`Discover this beautiful curation: "${product.value.name}" on CURIO!`);
+  return {
+    whatsapp: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`,
+    twitter: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+  };
+});
+
+const handleCopyLink = async () => {
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    copied.value = true;
+    toastStore.success('Product link copied to clipboard!');
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    toastStore.error('Failed to copy link.');
+  }
+};
 </script>
 
 <template>
@@ -230,6 +256,45 @@ const handleAddToCart = async () => {
             <p v-if="product.seller?.storeDescription" class="seller-desc">
               {{ product.seller.storeDescription }}
             </p>
+          </div>
+
+          <!-- Share Card -->
+          <div v-if="product" class="share-card">
+            <h3 class="share-card-title">Share this Curation</h3>
+            <p class="share-card-subtitle">Invite others to explore this beautiful object.</p>
+            <div class="share-actions-row">
+              <a 
+                :href="shareLinks.whatsapp" 
+                target="_blank" 
+                class="share-action-btn share-btn-whatsapp"
+                aria-label="Share on WhatsApp"
+              >
+                WhatsApp
+              </a>
+              <a 
+                :href="shareLinks.twitter" 
+                target="_blank" 
+                class="share-action-btn share-btn-twitter"
+                aria-label="Share on Twitter/X"
+              >
+                Twitter / X
+              </a>
+              <a 
+                :href="shareLinks.facebook" 
+                target="_blank" 
+                class="share-action-btn share-btn-facebook"
+                aria-label="Share on Facebook"
+              >
+                Facebook
+              </a>
+              <button 
+                @click="handleCopyLink" 
+                class="share-action-btn share-btn-copy"
+                aria-label="Copy link to clipboard"
+              >
+                {{ copied ? 'Copied!' : 'Copy Link' }}
+              </button>
+            </div>
           </div>
 
         </div>
@@ -1012,6 +1077,99 @@ const handleAddToCart = async () => {
   line-height: 1.4;
   color: var(--color-text);
   margin: 0;
+}
+
+/* Share Card */
+.share-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.share-card-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.share-card-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin: 0 0 8px 0;
+}
+
+.share-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.share-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 12px;
+  border-radius: 99px;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  transition: all var(--duration-base) var(--ease-spring);
+  text-align: center;
+}
+
+.share-btn-whatsapp {
+  background-color: #25d366;
+  color: white;
+  border-color: #25d366;
+}
+.share-btn-whatsapp:hover {
+  background-color: #128c7e;
+  border-color: #128c7e;
+  transform: translateY(-1px);
+}
+
+.share-btn-twitter {
+  background-color: #1da1f2;
+  color: white;
+  border-color: #1da1f2;
+}
+.share-btn-twitter:hover {
+  background-color: #1a91da;
+  border-color: #1a91da;
+  transform: translateY(-1px);
+}
+
+.share-btn-facebook {
+  background-color: #1877f2;
+  color: white;
+  border-color: #1877f2;
+}
+.share-btn-facebook:hover {
+  background-color: #166fe5;
+  border-color: #166fe5;
+  transform: translateY(-1px);
+}
+
+.share-btn-copy {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+.share-btn-copy:hover {
+  background-color: var(--color-accent);
+  transform: translateY(-1px);
 }
 </style>
 
