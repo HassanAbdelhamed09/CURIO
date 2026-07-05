@@ -90,6 +90,30 @@ const isNavItemActive = (item: NavItem) => {
   return item.matchNames.includes(String(route.name));
 };
 
+import { http } from '../api/http.js';
+
+const newsletterEmail = ref('');
+const subscribing = ref(false);
+
+const handleSubscribe = async () => {
+  if (!newsletterEmail.value) return;
+  subscribing.value = true;
+  try {
+    const response = await http.post('/marketing/subscribe', {
+      email: newsletterEmail.value.trim()
+    });
+    if (response.data.success) {
+      toastStore.success(response.data.message || 'Subscribed successfully!');
+      newsletterEmail.value = '';
+    }
+  } catch (err: any) {
+    const errorMsg = err.response?.data?.message || 'Newsletter subscription failed.';
+    toastStore.error(errorMsg);
+  } finally {
+    subscribing.value = false;
+  }
+};
+
 const handleLogout = async () => {
   await authStore.logout();
   toastStore.success('Successfully logged out. See you soon.');
@@ -203,6 +227,24 @@ const handleLogout = async () => {
               <li><a href="#" class="site-footer__link">Support Circle</a></li>
               <li><a href="#" class="site-footer__link">Handshake Registry</a></li>
             </ul>
+          </div>
+
+          <div class="footer-col newsletter-col">
+            <span class="footer-heading">Newsletter</span>
+            <p class="footer-newsletter-text">Subscribe to receive curation updates, design arrivals, and exclusive offers.</p>
+            <form @submit.prevent="handleSubscribe" class="newsletter-form">
+              <input 
+                v-model="newsletterEmail" 
+                type="email" 
+                placeholder="your@email.com" 
+                required 
+                class="newsletter-input"
+                aria-label="Newsletter email subscription input"
+              />
+              <button type="submit" class="newsletter-submit-btn" :disabled="subscribing">
+                {{ subscribing ? 'Subscribing...' : 'Subscribe' }}
+              </button>
+            </form>
           </div>
         </div>
         
@@ -380,8 +422,8 @@ const handleLogout = async () => {
 
 .footer-columns {
   display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr;
-  gap: 64px;
+  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  gap: 48px;
   margin-bottom: 48px;
 }
 
@@ -567,5 +609,60 @@ const handleLogout = async () => {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.newsletter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.newsletter-input {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 10px 16px;
+  border-radius: 99px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.newsletter-input:focus {
+  border-color: var(--color-accent);
+}
+
+.newsletter-submit-btn {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 16px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-spring);
+}
+
+.newsletter-submit-btn:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.newsletter-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.footer-newsletter-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+  margin: 0;
 }
 </style>
