@@ -57,8 +57,12 @@ export const sendEmail = async (to: string, subject: string, html: string): Prom
   try {
     const transporter = getTransporter();
     
+    const fromAddress = env.EMAIL_FROM.includes('<')
+      ? env.EMAIL_FROM
+      : `"${env.EMAIL_FROM.split('@')[0]}" <${env.EMAIL_FROM}>`;
+
     await transporter.sendMail({
-      from: `"${env.EMAIL_FROM.split('@')[0]}" <${env.EMAIL_FROM}>`,
+      from: fromAddress,
       to,
       subject,
       html,
